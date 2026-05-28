@@ -1,0 +1,297 @@
+// ============================================================================
+//  EXAMPLE.c4  —  a complete, self-contained, VALIDATED reference
+//  (passes `likec4 validate` and `likec4 build` as of LikeC4 1.57)
+//  Spec + model + all major view types in one file. Use it as a known-good
+//  pattern to copy from. In a real project, split into specification.c4 /
+//  model.c4 / views.c4 and DROP this file's own `specification {}` block
+//  (use assets/specification.c4 instead) to avoid a duplicate spec.
+// ============================================================================
+
+// ============================================================================
+//  specification.c4  —  reusable, pre-styled LikeC4 vocabulary
+// ----------------------------------------------------------------------------
+//  Drop this into every repo's likec4/ folder. It gives a consistent set of
+//  element kinds, relationship kinds, tags and a legend, all pre-styled so the
+//  diagrams look designed (icons, shapes, semantic colors) without per-repo
+//  styling work. Add/remove kinds to fit the repo, but keep the color and
+//  shape *semantics* below stable across projects — consistency is what reads
+//  as "beautiful".
+//
+//  COLOR SEMANTICS (do not drift between repos):
+//    primary    your code / the system under study
+//    secondary  human actors & personas
+//    gray       third-party / external systems you don't own
+//    indigo     stateful stores (db, cache, object storage)
+//    amber      async transport (queues, topics, event buses)
+//    green      healthy / new / highlighted-in-a-view
+//    red        deprecated / risk / PII-handling (used via tags, per-view)
+//    muted      de-emphasized context in a given view
+// ============================================================================
+
+specification {
+
+  // ---- Human actors -------------------------------------------------------
+  element person {
+    notation 'Person / actor'
+    style {
+      shape person
+      color secondary
+    }
+  }
+
+  // ---- The system under study (used in the Context view) ------------------
+  element system {
+    notation 'System under study'
+    style {
+      shape rectangle
+      color primary
+    }
+  }
+
+  // ---- Deployable / runnable units (Container level) ----------------------
+  element webapp {
+    notation 'Web frontend (SPA / SSR)'
+    style {
+      shape browser
+      color primary
+    }
+  }
+  element mobileapp {
+    notation 'Mobile app'
+    style {
+      shape mobile
+      color primary
+    }
+  }
+  element service {
+    notation 'Service / API'
+    style {
+      shape rectangle
+      color primary
+    }
+  }
+  element worker {
+    notation 'Background worker / job'
+    style {
+      shape rectangle
+      color primary
+    }
+  }
+  element function {
+    notation 'Serverless function'
+    style {
+      shape rectangle
+      color primary
+      multiple true
+    }
+  }
+  element gateway {
+    notation 'API gateway / edge / proxy'
+    style {
+      shape rectangle
+      color primary
+    }
+  }
+
+  // ---- Internal building blocks (Component level) -------------------------
+  element component {
+    notation 'Component / module'
+    style {
+      shape component
+      color primary
+    }
+  }
+
+  // ---- Stateful stores ----------------------------------------------------
+  element database {
+    notation 'Database'
+    style {
+      shape cylinder
+      color indigo
+    }
+  }
+  element cache {
+    notation 'Cache'
+    style {
+      shape storage
+      color indigo
+    }
+  }
+  element bucket {
+    notation 'Object storage / blob'
+    style {
+      shape bucket
+      color indigo
+    }
+  }
+
+  // ---- Async transport ----------------------------------------------------
+  element queue {
+    notation 'Queue / topic / event bus'
+    style {
+      shape queue
+      color amber
+    }
+  }
+
+  // ---- Things you don't own ----------------------------------------------
+  element externalSystem {
+    notation 'External / third-party system'
+    style {
+      shape rectangle
+      color gray
+    }
+  }
+
+  // ==========================================================================
+  //  Relationship kinds — encode the *nature* of an edge, not just its label.
+  //  Style is attached so the line speaks for itself across all views.
+  // ==========================================================================
+  relationship sync {
+    notation 'Synchronous call (HTTP/RPC/GraphQL)'
+    line solid
+    head normal
+  }
+  relationship async {
+    notation 'Asynchronous (event / message)'
+    line dotted
+    color amber
+    head vee
+  }
+  relationship reads {
+    notation 'Reads from store'
+    line dashed
+    color indigo
+    head vee
+  }
+  relationship writes {
+    notation 'Writes to store'
+    line solid
+    color indigo
+    head normal
+  }
+  relationship dep {
+    notation 'Build / library dependency'
+    line dashed
+    color gray
+    head open
+  }
+
+  // ==========================================================================
+  //  Tags — for cross-cutting overlay views (filter the same model many ways)
+  // ==========================================================================
+  tag external      // anything outside the trust boundary
+  tag pii {         // touches personal / sensitive data — surfaces in security views
+    color #E5484D   // tag colors must be hex / rgb() — theme names (red, amber…) are not allowed here
+  }
+  tag deprecated {
+    color #E5484D
+  }
+  tag public        // internet-facing entry point
+  tag internal      // internal-only
+  tag new           // recently added / in-flight work
+
+  // Add team / domain tags per repo, e.g.:
+  // tag team-payments
+  // tag domain-billing
+}
+
+// Minimal exercise model — TAGS FIRST in every block (the #1 gotcha)
+model {
+  customer = person 'Customer' { description 'End user' }
+
+  cloud = system 'Cloud System' {
+    #public
+    description 'The system under study'
+    technology 'Kubernetes'
+    icon tech:kubernetes
+
+    web = webapp 'Web UI' {
+      description 'React SPA'
+      technology 'React'
+      icon tech:react
+    }
+    api = service 'API' {
+      #public
+      description 'REST API'
+      technology 'Node.js'
+      icon tech:nodejs
+    }
+    jobs = worker 'Worker' {
+      description 'Processes jobs'
+      icon tech:nodejs
+    }
+    db = database 'Postgres' {
+      #pii
+      description 'Primary datastore'
+      technology 'PostgreSQL'
+      icon tech:postgresql
+    }
+    redis = cache 'Redis' { icon tech:redis }
+    events = queue 'Kafka' { icon tech:kafka }
+
+    web -> api 'fetches data (HTTPS)'
+    api -[writes]-> db 'persists orders'
+    api -[reads]-> redis 'session lookup'
+    api -[async]-> events 'emit OrderPlaced'
+    events -[async]-> jobs 'OrderPlaced'
+    jobs -[writes]-> db 'updates status'
+  }
+
+  stripe = externalSystem 'Stripe' {
+    #external
+    description 'Payments'
+    icon tech:stripe
+  }
+
+  customer -> web 'uses in browser'
+  api -> stripe 'charge card'
+}
+
+views {
+  view index {
+    title 'System Context'
+    include *
+    autoLayout TopBottom
+  }
+  view containers of cloud {
+    title 'Containers'
+    include *
+    include cloud.api with { navigateTo apiComponents }
+    style cloud { color muted  opacity 10% }
+    autoLayout LeftRight
+  }
+  view apiComponents of cloud.api {
+    title 'API components'
+    include *
+    include -> cloud.db, -> cloud.redis
+  }
+  view dataStores {
+    title 'Data & persistence'
+    include *
+      where kind is database or kind is cache or kind is bucket
+    include -> cloud.db, -> cloud.redis
+    style element.tag = #pii { color red }
+  }
+  view externals {
+    title 'External integrations'
+    include *
+    group 'Third parties' {
+      color gray
+      opacity 15%
+      include * where tag is #external
+    }
+  }
+  dynamic view checkoutFlow {
+    title 'Checkout'
+    customer -> web 'clicks Buy'
+    web -> api 'POST /orders'
+    api -> db 'insert order'
+    par {
+      api -> stripe 'charge'
+      api -> events 'emit OrderPlaced'
+    }
+    web <- api 'returns 201'
+    events -> jobs 'OrderPlaced'
+  }
+}

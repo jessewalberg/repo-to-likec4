@@ -1,0 +1,22 @@
+{
+  "$schema": "https://likec4.dev/schemas/config.json",
+  "name": "architecture",
+  "title": "Architecture",
+  "styles": {
+    "defaults": {
+      "color": "primary",
+      "border": "solid",
+      "opacity": 100,
+      "group": {
+        "color": "gray",
+        "opacity": 8,
+        "border": "dashed"
+      },
+      "relationship": {
+        "color": "gray",
+        "line": "solid",
+        "arrow": "vee"
+      }
+    }
+  }
+}
