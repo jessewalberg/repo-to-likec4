@@ -13,7 +13,7 @@
         "border": "dashed"
       },
       "relationship": {
-        "color": "gray",
+        "color": "slate",
         "line": "solid",
         "arrow": "vee"
       }

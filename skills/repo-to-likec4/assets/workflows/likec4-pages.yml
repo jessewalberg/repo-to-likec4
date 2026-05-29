@@ -45,6 +45,9 @@ jobs:
           output: dist
           base: ${{ steps.pages.outputs.base_path }}
           use-dot-bin: 'true'
+          # Pin the CLI: the clickable details panel, static-site relationship
+          # popovers, and `multiple` edge-expansion require >= 1.57.0.
+          likec4-version: '1.57.0'
 
       - uses: actions/upload-pages-artifact@v3
         with:

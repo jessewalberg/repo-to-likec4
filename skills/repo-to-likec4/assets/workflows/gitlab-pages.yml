@@ -17,7 +17,9 @@ pages:
     # (<project>-<hash>.gitlab.io/). Derive it from the URL GitLab serves at.
     - export BASE="$(node -e "process.stdout.write(new URL(process.env.CI_PAGES_URL).pathname.replace(/\/?$/, '/'))")"
     - echo "Building LikeC4 site with base $BASE"
-    - npx -y likec4 build likec4 --output public --base "$BASE"
+    # Pin the CLI: clickable details panel, static-site relationship popovers, and
+    # `multiple` edge-expansion require >= 1.57.0.
+    - npx -y likec4@1.57.0 build likec4 --output public --base "$BASE"
   artifacts:
     paths:
       - public
