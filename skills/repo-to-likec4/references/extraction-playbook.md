@@ -128,6 +128,16 @@ single-app | monorepo-one-project | multi-project   (per SKILL.md table)
 2. **Checkout**: ...
 3. ...
 
+## Diagram plan (from references/repo-archetypes.md)
+Repo archetype(s): <e.g. web-app + API + stateful-domain>
+Diagrams to produce (each with a one-line rationale):
+- System Context — orientation for newcomers
+- Container map — the runnable parts + drill-down
+- Component: api — routes → services → repos
+- Flow (sequence): checkout — the core revenue path
+- Data & persistence — shared-DB coupling check
+- ⚠️ Order state machine — outside C4 scope; recommend to human (not generated)
+
 ## Deployment (only if compose/k8s/terraform present)
 <environments, nodes, what runs where>
 

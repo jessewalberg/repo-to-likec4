@@ -24,6 +24,12 @@ The altitude rule applies everywhere: **Context ≈ 5–9 nodes, Container ≈ �
 Component ≈ ≤15.** If a view is crowded, split it or push detail into a
 drill-down (`navigateTo`) rather than cramming.
 
+> **Structural-first.** Views 1–3 are the backbone and are required for every
+> repo (Component per significant container); flows (4) come *after*, not
+> instead. Shipping only flow diagrams is the most common failure — it leaves
+> the reader with no map of what the parts are. Always produce 1 + 2 + (3 per
+> service) + 4, then add 5–10 where they apply.
+
 ---
 
 ## 1. System Context — "what is this and what does it touch?"
@@ -86,8 +92,16 @@ dynamic view checkoutFlow {
 }
 ```
 Tips: `include a, b, c` fixes actor order; `notes '...'` documents a step;
-`navigateTo` links a flow to a deeper flow. Export sequence form with
-`likec4 export png --seq`.
+`navigateTo` links a flow to a deeper flow.
+
+**These flows double as sequence diagrams.** A dynamic view renders two ways —
+`diagram` (spatial flow, the default) and `sequence` (classic lifelines). To get
+the sequence rendering: (1) **use leaf elements only** in the steps — reference a
+`service`/`component`, never a parent container that has children (the sequence
+layout silently can't lay out non-leaf nodes); (2) in the hosted site, toggle the
+view to its sequence layout; for an embed, pin it with the web-component
+attribute `dynamic-variant="sequence"`. So author every flow at leaf level and
+you get both the flow diagram and the sequence diagram from one definition.
 
 ## 5. Data flow / pipeline — "how does data move and transform?"
 For ETL, streaming, or event-driven systems. Left-to-right reads naturally.

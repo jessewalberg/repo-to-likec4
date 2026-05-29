@@ -207,15 +207,16 @@ inherited from the logical model; you can add deployment-only ones.
 
 ## 9. CLI & tooling
 ```sh
-npx likec4 serve                 # dev server, hot reload (alias: start, dev)
-npx likec4 build -o ./dist       # static interactive site;  --output-single-file for one html
-npx likec4 export png -o ./out   # PNG via Playwright;  also: jpg --quality 90 ;  --theme dark ;  --seq
-npx likec4 export json -o m.json
-npx likec4 export drawio -o ./out --uncompressed
-npx likec4 gen mermaid|dot|d2|plantuml|react
-npx likec4 validate              # CI: non-zero on errors / layout drift
+npx likec4 serve                 # dev server, hot reload (alias: start, dev) — local preview
+npx likec4 build -o ./dist       # build the static interactive site (this is what GitHub Pages serves)
+npx likec4 validate              # CI: non-zero on errors / layout drift — run before publishing
 npx likec4 format                # CI: --check
 ```
+This skill publishes the **hosted site** (see `references/publishing.md` and
+`assets/workflows/likec4-pages.yml`); it does not export image files. The CLI can
+also `export png|jpg|json|drawio` and `gen mermaid|dot|d2|plantuml|react` if ever
+needed, but that's outside this skill's flow.
+
 MCP server (query the model in natural language): `npx -y @likec4/mcp`
 (env `LIKEC4_WORKSPACE`), or `likec4 mcp --http`, or the VS Code extension's
 built-in server. Official syntax skill: `npx skills add https://likec4.dev/`.
