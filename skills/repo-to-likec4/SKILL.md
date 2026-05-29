@@ -64,6 +64,11 @@ already has.
 2. Create a `likec4/` dir in the repo. Copy `assets/specification.c4` and
    `assets/likec4.config.json` into it. The spec pre-styles every element kind
    (icons, shapes, semantic colors, legend) so you don't restyle per repo.
+3. **Use LikeC4 ≥ 1.57.0** (`npx likec4@1.57.0 …`, and the CI is pinned to it).
+   The features that make the diagrams good — the clickable details panel,
+   relationship popovers in the *published* site, `multiple` edge-expansion, and
+   `list-icons` — are all version-gated; on an older build they're silently
+   absent no matter how good the `.c4` is.
 
 ### Phase 1 — Recon (cheap, deterministic, no guessing)
 Follow `references/extraction-playbook.md`. Detect the stack, then harvest the
@@ -74,6 +79,11 @@ Follow `references/extraction-playbook.md`. Detect the stack, then harvest the
 - Boundaries: entry points (HTTP routes, CLI, cron, webhooks, message
   handlers), datastores, third-party SDKs.
 - Intent: README + a peek at top-level package descriptions for good titles.
+- **Source + facts (for clickable nodes):** for each element note the file/dir
+  it maps to and a few facts (language, package, path, owner). Compute the repo's
+  blob-URL base once (`git remote get-url origin` + branch) so every element can
+  carry an absolute source `link`. This is the cheap deterministic step that
+  delivers "click the box → the right code" — don't skip it.
 
 High-signal files to always check: `docker-compose.yml` and `k8s/` (they
 literally declare services and their links), `.env.example` (reveals external
@@ -99,13 +109,32 @@ the facts and the diagram plan before you draw.
 
 ### Phase 2 — Model
 Translate the manifest into LikeC4 in `likec4/model.c4` (or one file per service
-for monorepos). Map each fact to a pre-styled kind from the spec (see the
-mapping table in the extraction playbook). Give every element a `title`, a
-one-line `description`, a `technology`, and an `icon` (use bundled `tech:`,
-`aws:`, `gcp:`, `azure:` packs — this is the biggest single quality lever). Use
-relationship **kinds** (`sync`/`async`/`reads`/`writes`/`dep`) so edges are
-self-explanatory. Tag entry points `#public`, third parties `#external`, and any
-PII/auth path `#pii`.
+for monorepos). Map each fact to a pre-styled kind from the spec (see the mapping
+table in the extraction playbook). **Every element carries SIX things** — this is
+the difference between a bare box and a clickable, source-linked node, and the
+gap that made the first runs look bad:
+1. **`summary`** — ONE short line; this is what shows on the node face. Keep it short.
+2. **`description`** — rich triple-quoted **markdown**; shows only in the
+   click-through details panel (headings, bullets, inline links all render). Put
+   the long prose here, NOT on the face.
+3. **`technology`** — the stack.
+4. **`icon`** — the biggest visual lever. Verify the id with `likec4 list-icons`
+   (validate hard-rejects a non-existent id). If a brand has no pack icon, use its
+   official SVG by **absolute URL** (`icon https://brand.com/favicon.svg`) or
+   `icon none` — **never** a same-named glyph from another pack (that's how
+   `bootstrap:cursor`, a mouse-pointer, mislabels the Cursor editor).
+5. **`link`** — one or more **absolute** source URLs (`link <blob-url> 'Source'`,
+   plus labelled links to the workflow YAML / Dockerfile / OpenAPI). This is the
+   user-facing payoff: click a box → the real code. Relative paths die on Pages.
+6. **`metadata { … }`** — the deterministic facts from recon (path, language,
+   package, loc, owner). Renders alphabetised in the panel.
+
+Use relationship **kinds** (`sync`/`async`/`reads`/`writes`/`dep`) so edges are
+self-explanatory, and give each a short verb-led title. Tag entry points
+`#public`, third parties `#external`, any PII/auth path `#pii`. **`navigateTo` is
+NOT an element-body property** (it fails to parse there) — set drill-down on a
+relationship (`a -> b { navigateTo someFlow }`, to a *dynamic* view) or in a
+view's `with { navigateTo … }`. See `references/EXAMPLE.c4` for the full pattern.
 
 ### Phase 3 — Views (the backbone + the plan you made in Phase 1)
 Execute the **Diagram plan** from your manifest. `references/repo-archetypes.md`
@@ -115,7 +144,12 @@ predicate pattern for each). Two non-negotiables frame the plan:
 **Always produce the backbone** — a run that yields only flows is incomplete:
 1. **System Context** (`view index`) — the system + people + external systems.
 2. **Container / Service map** (`view of <system>`) — the runnable units and how
-   they connect. The single most useful diagram.
+   they connect. The single most useful diagram — and the one that most often
+   turns into an unreadable **hairball**. If any element has >5 edges in/out (a
+   hub: GitHub, a gateway, a shared DB, an event bus), do NOT use a flat
+   `include *`: group the spokes into named lanes, give the hub its own focused
+   view, and mute it. Follow `references/view-recipes.md` §2b — it's the headline
+   fix for "looks bad".
 3. **A Component view per significant container**, wired with `navigateTo` for
    drill-down (whenever there's more than one container).
 
@@ -124,18 +158,24 @@ archetype analysis selected (event choreography, command tree, data flow, domain
 map, dependency graph, deployment, auth/trust-boundary, tag overlays, …). This is
 where the repo-specific intelligence shows up; don't substitute a generic set.
 
-**Sequence diagrams:** the dynamic (flow) views ARE the sequence diagrams —
-LikeC4 renders the same view as a classic lifeline sequence on demand (variant
-`sequence`). Two rules: (a) author each flow's steps between **leaf elements** (a
-`service`/`component`, never a parent container with children) — the sequence
-layout only supports leaf nodes; (b) the hosted viewer toggles diagram↔sequence,
-and embeds pin it with `dynamic-variant="sequence"`. Leaf-level flows double as
-sequence diagrams for free.
+**Sequence diagrams:** the dynamic (flow) views ARE the sequence diagrams — but
+you must opt in. Three rules: (a) add **`variant sequence`** to each flow's body
+so the hosted viewer defaults it to lifelines (the original skill skipped this,
+so flows only ever rendered spatially); (b) author the steps between **leaf
+elements** (a `service`/`component`, never a parent container with children) —
+the sequence layout silently can't lay out non-leaf nodes; (c) the viewer still
+toggles diagram↔sequence, embeds pin it with `dynamic-variant="sequence"`, and a
+PNG export uses `likec4 export png --seq`. Leaf-level flows with `variant
+sequence` give you both renderings from one definition.
 
 All views are predicates over the one model, so producing a dozen costs barely
 more than one. Keep each at the right **altitude** (Context ≈ 5–9 nodes; never
-cram) and apply `references/styling-conventions.md` to *every* view — the two
-most common "looks unfinished" misses are (1) missing icons and (2) not muting
+cram) and apply `references/styling-conventions.md` to *every* view. The
+"looks unfinished" misses, in order of how much they hurt: (1) a hub hairball
+(fix with §2b lanes + focused hub view); (2) the whole description on the node
+face instead of a short `summary`; (3) `[...]` merged-edge labels (give the edge
+a title or `with { multiple true }`); (4) an empty `group` box (group's
+`include` must precede any `include *`); (5) missing/wrong icons; (6) not muting
 the parent boundary (`style <system> { color muted  opacity 10% }`). Use scoped
 views + drill-down instead of one mega-diagram.
 
@@ -145,12 +185,23 @@ recommendation to the human in the manifest — this skill does not generate oth
 formats. Still express what C4 can: a status-driven entity gets the dynamic flow
 that drives its transitions, even though the state machine itself stays a note.
 
-### Phase 4 — Validate, then publish (GitHub *or* GitLab)
+### Phase 4 — Validate + self-check, then publish (GitHub *or* GitLab)
 ```sh
 cd likec4
-npx likec4 validate          # syntax + layout-drift check; fix ALL errors before publishing
-npx likec4 serve             # optional: live interactive preview (hot reload) while iterating
+npx likec4@1.57.0 validate    # syntax + unknown-icon + layout-drift check; fix ALL errors before publishing
+npx likec4@1.57.0 serve       # optional: live interactive preview (hot reload) while iterating
 ```
+**Self-check before publishing** (these are the defects that made the first runs
+look bad — catch them now, not on the live site):
+- **Render and look.** `npx likec4@1.57.0 export png -o /tmp/preview` (add `--seq`
+  for the flows) and actually open the PNGs. The container map must not be a
+  hairball; if it is, apply `view-recipes.md` §2b and re-render.
+- **No `[...]` edges** and **no empty `group` boxes** in any view — grep the
+  generated views and fix (explicit edge title / `with { multiple true }` /
+  group-first ordering).
+- **Every element has** a `summary`, an `icon` that's the *right* picture, and at
+  least one **absolute** source `link` whose path actually exists in the repo.
+- **Every flow** has `variant sequence` and uses leaf elements only.
 The diagrams are published as an **interactive site on the host's Pages** — the
 single supported render (no image files generated or committed). **Detect where
 the user's code lives and run the matching flow** — don't hand them manual steps
@@ -226,17 +277,27 @@ likec4/
 - Any family C4 can't express (state machine, ER, branching flowchart) is left
   as a ⚠️ recommendation in the plan, not generated and not forced into a LikeC4
   view where it reads poorly.
-- **Every element has an icon** (bundled `tech:`/`aws:`/`gcp:`/`azure:`; if no
-  exact match, the closest tech icon or a `bootstrap:` glyph — never icon-less),
-  plus title + description + technology. No bare boxes.
+- **Every element is richly populated:** a short `summary` (face) + a markdown
+  `description` (panel) + `technology` + a correct `icon` + at least one absolute
+  source `link` + `metadata`. No bare boxes, no walls of text on the face.
+- **Icons are the right picture.** Verified with `list-icons`; a brand with no
+  pack icon uses an absolute SVG URL or `icon none` — never a wrong-meaning glyph
+  (no `bootstrap:cursor` for the Cursor editor).
+- **Clickable to source:** a reader can click any node and reach the real code
+  (the `link`s resolve on the published site — absolute URLs, paths that exist).
+- **No hairballs, no `[...]` edges, no empty group boxes.** Hub fan-in is tamed
+  with lanes + a focused hub view (§2b); merged edges get a title or
+  `multiple true`; groups are declared before any `include *`.
 - Colors/shapes follow the semantics in `specification.c4` consistently across
   every view; scoped views mute the parent boundary.
-- Flows use leaf-level elements so they also render as sequence diagrams.
+- Flows carry `variant sequence` and use leaf-level elements, so they render as
+  real sequence diagrams.
 - A reader who has never seen the repo can answer "what is this, what are its
   parts, what does it talk to, and what happens in the main flow" from the
   Context + Container + one flow view alone.
 - Views are uncluttered; drill-down via `navigateTo` rather than one huge graph.
-- The Pages workflow is in place and the README links to the deployed site.
+- The Pages workflow is in place (pinned to likec4 ≥ 1.57.0) and the README links
+  to the deployed site.
 
 ## Optional power-up: keep it queryable
 After generating, suggest wiring the LikeC4 **MCP server** (`npx -y @likec4/mcp`,

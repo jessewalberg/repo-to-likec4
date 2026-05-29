@@ -25,18 +25,29 @@ The most common "designed" move: in a scoped view, set the parent boundary to
 ## 2. Icons are the biggest single quality lever
 A diagram with a Postgres elephant, a React atom, and a Redis cube looks 10×
 more finished than gray boxes — for near-zero effort. **Give every technical
-element an icon.** Use the bundled packs (5,000+ icons), no downloads:
+element an icon.** Use the bundled packs (thousands of icons), no downloads:
 `tech:` (postgresql, redis, nodejs, react, go, python, kafka, docker, nginx…),
-`aws:` (lambda, dynamodb, simple-storage-service, simple-queue-service…),
+`aws:` (lambda, dynamo-db, simple-storage-service, simple-queue-service…),
 `gcp:`, `azure:`, and `bootstrap:` for generic UI glyphs. A bundled icon also
-auto-fills `technology` (e.g. `icon tech:docker` → "Docker"). Use VS Code
-completion to find exact names. Fallback: a URL or `../local.svg`.
+auto-fills `technology` (e.g. `icon tech:docker` → "Docker").
 
-> Icon ids must match the bundled set **exactly** — `likec4 validate` rejects
-> unknown ones (e.g. it's `tech:kafka` not `tech:apache-kafka`, and
-> `aws:dynamo-db` not `aws:dynamodb`). After adding icons, run `validate`; if an
-> id fails, check the real filename in `@likec4/icons/<pack>/` or VS Code
-> completion rather than guessing.
+**Find the EXACT id — never guess.** `likec4 list-icons --format json --group
+tech` lists every real id; grep it for the brand. `likec4 validate` HARD-FAILS
+on a non-existent id (`Could not resolve reference to LibIcon …`), so a typo
+can't reach the site — but it also can't save you from a *valid-but-wrong* icon.
+
+> **The wrong-icon trap (this is what made a real run look bad).** Some brands
+> have no icon in any pack — e.g. there is **no `tech:cursor`**. Do NOT reach for
+> a same-named glyph in another pack: `bootstrap:cursor` is a valid id, so it
+> passes `validate`, but it's a *mouse-pointer* — the wrong picture. A wrong logo
+> reads worse than none. When no real brand icon exists, use the vendor's
+> official SVG by **absolute URL** (`icon https://www.cursor.com/favicon.svg` —
+> verified to render on the published site) or a committed `./icons/<brand>.svg`,
+> or `icon none`. Never substitute a wrong-meaning glyph.
+
+Keep icons high-contrast: `iconColor` recolors only `bootstrap:`/inline-SVG
+icons, NOT `tech:`/`aws:`/`gcp:`/`azure:` brand logos — so if a logo disappears
+into a colored node, change the node fill, don't try to recolor the logo.
 
 ## 3. Shape = category (it carries semantics at a glance)
 Set by kind in the spec; don't override casually.
@@ -66,11 +77,39 @@ and data flows. Tune spacing only if needed: `autoLayout LeftRight 120 110`
 (rank sep, node sep). Use `rank same { a, b }` to align a row of peers (e.g. all
 datastores), and `rank source`/`rank sink` to anchor ingress/egress — sparingly.
 
-## 6. Populate text — empty boxes look unfinished
-Every element gets a `title`, a one-line `description` (or `summary`, which is
-what shows on the node face), and a `technology`. Every relationship gets a
-short verb-led `label` ("reads orders", "emits OrderPlaced", not "uses"). If a
-merged edge shows `[...]`, give it an explicit `title` or set `multiple true`.
+## 6. Clean faces, rich on click — `summary` vs `description`
+This is the single biggest readability lever after icons, and the one the first
+runs missed. LikeC4 shows **`summary` on the node FACE** and **`description`
+(markdown) only in the click-through details panel.** If you put a long
+description and no summary, the whole wall of text lands on the face → bulky,
+ugly boxes (exactly what went wrong). So for every element:
+- `summary` — ONE short line for the face ("Receives & validates worker results").
+- `description` — rich triple-quoted **markdown** for the panel (headings,
+  bullets, inline `code`, and an inline source link all render).
+- `technology` — keep it.
+Every relationship gets a short verb-led title ("emits OrderPlaced", not "uses").
+If a merged edge shows `[...]`, fix it by altitude: at Context, collapse it to one
+clean label with `include a -> b with { title 'triggers workflows' }` (NOT
+`multiple true`, which over-expands at high altitude); at Container/Component,
+expand distinct edges with `include a -> b with { multiple true }`; or don't pull
+many low-level edges up into a high-altitude view. Both render-verified.
+
+## 6b. Make it clickable — links + metadata (the "right links")
+The details panel is where a diagram becomes a *map you can navigate*. Populate
+it on every element (and important relationships):
+- **`link <absolute-url> 'Title'`** — one or more. This is how a reader jumps
+  from a box to the actual code. Point at the real source: a GitHub/GitLab
+  **blob URL with a line range** (`…/blob/main/apps/api/index.ts#L1-L40`), the
+  workflow YAML, the Dockerfile, the OpenAPI/README. The quoted title is the
+  clickable label. **Always absolute** — relative paths render dead `file://`
+  links on the published site.
+- **`metadata { key 'value' }`** — deterministic structured facts (language,
+  path, package, loc, owner; for CI nodes: workflow, triggers, runner). Renders
+  alphabetised in the panel. Quote every value, even numbers.
+The recon pass already located each element's files — capture them and emit
+`link`s + `metadata`. A node with a summary, a markdown description, two source
+links, and five metadata facts is the difference between "a picture" and "a
+clickable architecture".
 
 ## 7. A legend makes it look professional — and it's automatic
 Because every kind in the spec has a `notation`, LikeC4 renders a key. Keep
@@ -91,10 +130,18 @@ group wins.
 - For light/dark parity, prefer SVG icons with baked `prefers-color-scheme`; export both `--theme light` and `--theme dark` if both will be used.
 
 ## Do / Don't
-- ✅ Icon + semantic color + populated text on every element.
-- ✅ Scope and filter to keep each view at its altitude.
+- ✅ Every element: icon + semantic color + short `summary` (face) + markdown
+  `description` (panel) + `technology` + at least one source `link` + `metadata`.
+- ✅ Scope and filter to keep each view at its altitude; tame hub fan-in with
+  lanes + a dedicated hub view (see `view-recipes.md`).
 - ✅ Reuse `specification.c4` across repos so output is consistent and on-brand.
-- ✅ Drill down with `navigateTo`; present with `extends` slides.
-- ❌ One giant "everything" diagram. ❌ Colors used decoratively. ❌ Bare boxes
-  with no tech/description. ❌ Vague edge labels ("uses", "calls" everywhere).
-  ❌ Overriding shapes/colors ad hoc so views disagree with each other.
+- ✅ Drill down with `navigateTo` (on a relationship → a dynamic view, or in a
+  view's `with { }` → a view id — never on an element body).
+- ✅ Verify every icon id with `list-icons`; use an absolute SVG URL for brands
+  with no pack icon.
+- ❌ One giant "everything" diagram or a hub with 15 spokes in one view.
+- ❌ The full description dumped on the node face (use `summary`).
+- ❌ A valid-but-wrong icon (`bootstrap:cursor` for the Cursor editor).
+- ❌ Relative source links (dead on the published site).
+- ❌ Bare boxes, vague edge labels ("uses"/"calls"), `[...]` edges left as-is,
+  empty group boxes, colors used decoratively, ad-hoc shape/color overrides.
