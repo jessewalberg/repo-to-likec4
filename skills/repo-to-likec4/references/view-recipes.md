@@ -53,11 +53,64 @@ view for drill-down.
 view containers of cloud {
   title 'Containers'
   include *                         // scoped → cloud + its children
-  include cloud.api with { navigateTo apiComponents }   // drill-down
+  include cloud.api with { navigateTo apiComponents }   // drill-down (view-level, NOT element body)
   style cloud { color muted  opacity 10% }              // de-emphasize the boundary
-  autoLayout LeftRight
+  autoLayout LeftRight 120 130
 }
 ```
+**Before you ship this view, check for hub fan-in** (see 2b). If one element
+(a `github`, a gateway, a shared DB, an event bus) has more than ~5 edges in/out,
+a flat `include *` here produces an unreadable hairball — apply the recipe below.
+
+## 2b. Taming hub-and-spoke / fan-in — the #1 cause of an ugly map
+This is the failure mode that made a real run look bad: 11 sibling workers all
+pointing at one `github` hub → ~20 near-parallel edges crammed into one channel,
+extreme aspect ratio, overlapping label pills. **No single autoLayout knob fixes
+it** — re-orienting just turns a tall hairball into a wide one. It's an
+*altitude* problem; fix it with curation, in roughly this order:
+
+1. **Group the spokes into named lanes** so the map reads as a few clusters
+   instead of N loose boxes. Put each group's own `include` FIRST (a preceding
+   `include *` steals the elements and the group renders empty):
+   ```likec4
+   view containers of cloud {
+     title 'Containers'
+     group 'Intake & planning' { color indigo  opacity 12%
+       include cloud.intake, cloud.planning, cloud.childIssues }
+     group 'Implementation'    { color green   opacity 12%
+       include cloud.codexDispatch, cloud.cursorDispatch }
+     group 'Checking'          { color amber   opacity 12%
+       include cloud.codexCheck, cloud.cursorCheck }
+     group 'Governance'        { color gray    opacity 12%
+       include cloud.reconcile, cloud.prTriage, cloud.policyGate, cloud.ci }
+     include github, cloud.cli            // the shared substrate + engine
+     style cloud { color muted  opacity 10% }
+     style github { color muted  opacity 25% }   // mute the hub so lanes lead
+     autoLayout LeftRight 140 110
+   }
+   ```
+   (Lane grouping was render-verified to convert the tall spaghetti column into a
+   structured, readable map — the strongest single fix.)
+2. **Give the hub its own focused view** and keep it OUT of (or muted in) the
+   main map. A `view of <hub>` auto-scopes to the hub + its neighbours, so the
+   dense fan-in lives in one diagram instead of polluting the container map:
+   ```likec4
+   view githubSurface of github {
+     title 'GitHub integration surface'
+     include *
+     autoLayout LeftRight
+   }
+   ```
+   Reach it via `navigateTo` from the muted hub in the container map.
+3. **Anchor with `rank`** (a secondary assist, not a cure): `rank same { …spokes }`
+   aligns the peer row and `rank sink { hub }` (or `rank source` for ingress)
+   pins the hub to one end — a cleaner bipartite shape. Element views only.
+4. **Split by lane** if it's still crowded: one container view per lane
+   (`view implementationLane of cloud { include cloud.codexDispatch, … }`),
+   linked from a sparse top map. Honour the ≤15-node budget.
+
+Manual saved layouts (`.likec4/<view>.snap`, committed) are a last-resort polish
+for 1–3 hero views only — they drift when the model changes, so scope them tight.
 
 ## 3. Component view (per service) — "how is this service built?"
 Generate one per significant container. Internal modules/layers
@@ -79,6 +132,7 @@ leaf-level step-by-step, or `diagram` for a spatial flow.
 ```likec4
 dynamic view checkoutFlow {
   title 'Checkout'
+  variant sequence                      // render as lifelines by default (see below)
   customer -> web 'clicks Buy'
   web -> api  'POST /orders'
   api -> db   'insert order'
@@ -91,17 +145,21 @@ dynamic view checkoutFlow {
   worker -> email 'send receipt'
 }
 ```
-Tips: `include a, b, c` fixes actor order; `notes '...'` documents a step;
-`navigateTo` links a flow to a deeper flow.
+Tips: `include a, b, c` fixes actor order; `notes '...'` documents a step; a
+relationship `navigateTo someFlow` links a flow to a deeper flow.
 
-**These flows double as sequence diagrams.** A dynamic view renders two ways —
-`diagram` (spatial flow, the default) and `sequence` (classic lifelines). To get
-the sequence rendering: (1) **use leaf elements only** in the steps — reference a
-`service`/`component`, never a parent container that has children (the sequence
-layout silently can't lay out non-leaf nodes); (2) in the hosted site, toggle the
-view to its sequence layout; for an embed, pin it with the web-component
-attribute `dynamic-variant="sequence"`. So author every flow at leaf level and
-you get both the flow diagram and the sequence diagram from one definition.
+**These flows double as sequence diagrams — but you must opt in.** A dynamic view
+renders two ways: `diagram` (the spatial default) and `sequence` (classic
+lifelines, render-verified). To actually get lifelines: (1) add **`variant
+sequence`** to the view body so the hosted viewer defaults that view to the
+sequence layout (and still offers the toggle); (2) **use leaf elements only** in
+the steps — reference a `service`/`component`, never a parent container that has
+children (the sequence layout silently can't lay out non-leaf nodes); (3) for an
+embed, pin it with the web-component attribute `dynamic-variant="sequence"`, and
+for a PNG export pass `likec4 export png --seq`. The original skill mandated
+leaf-level (good) but never emitted `variant sequence`, so the flows only ever
+rendered spatially. Author every flow at leaf level **with `variant sequence`**
+and you get both renderings from one definition.
 
 ## 5. Data flow / pipeline — "how does data move and transform?"
 For ETL, streaming, or event-driven systems. Left-to-right reads naturally.
@@ -134,14 +192,20 @@ review and incident blast-radius.
 ```likec4
 view externals {
   title 'External integrations'
-  include *
-  exclude * where tag is not #external and kind is not service and kind is not gateway
+  // group's own include comes FIRST so it ADOPTS the externals. A preceding
+  // `include *` would claim them at top level → the group box renders EMPTY
+  // (the exact bug in the first run).
   group 'Third parties' {
     color gray  opacity 15%
     include * where tag is #external
   }
+  include cloud.* where kind is service or kind is gateway   // the callers, after
 }
 ```
+> **The empty-group rule:** an element joins a `group` only if no parent of it is
+> already in the view. So always put a group's `include` before any broad
+> `include *`. Render-verified: group-first populates the box; `*`-first leaves
+> it empty.
 
 ## 8. Deployment topology — "what runs where?"
 Only if `docker-compose` / `k8s` / `terraform` exists. Uses LikeC4's deployment
@@ -201,7 +265,8 @@ global {
 ---
 
 ### Cross-view conventions
-- **Drill-down, not sprawl:** Context → (navigateTo) → Container → (navigateTo) → Component → (navigateTo) → flow. Build the chain with `navigateTo` so a reader can dive in.
+- **Drill-down, not sprawl:** Context → (navigateTo) → Container → (navigateTo) → Component → (navigateTo) → flow. Build the chain so a reader can dive in. **`navigateTo` placement:** in a view, `include x with { navigateTo someView }` (element → view); on a relationship, `a -> b { navigateTo someFlow }` (edge → *dynamic* view). It is **never** an element-body property — that fails to parse. Defining a scoped `view of x` also makes `x` click-navigable automatically.
+- **Make every node clickable:** the value of a *model* over a picture is the details panel — give each element a `summary`, a markdown `description`, source `link`s (absolute), and `metadata`. A reader should be able to click any box and land on the real code.
 - **Name views by what they answer**, set a clear `title`, and keep `index` as the entry point.
-- **One layout direction per intent:** `TopBottom` for hierarchy/context, `LeftRight` for request and data flows.
+- **One layout direction per intent:** `TopBottom` for hierarchy/context, `LeftRight` for request and data flows; add numeric spacing (`LeftRight 120 130`) to spread a dense view.
 - **`extends` for slides:** if presenting, `view slide2 extends containers { style someElement { color green } }` to progressively reveal/highlight.

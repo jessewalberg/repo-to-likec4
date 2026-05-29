@@ -101,6 +101,10 @@ machine itself is the prime case LikeC4 cannot draw — flag it as a
 recommendation; this skill won't generate it.**
 
 ## Cross-cutting lenses (apply by signal, on top of any archetype)
+- **Hub detected** (one element nearly everything talks to — a platform host like
+  GitHub, an API gateway, a shared DB, an event bus): plan the container map as
+  lanes + a dedicated focused view *of the hub*, not a flat map. This is the
+  single most common cause of an ugly diagram — see `view-recipes.md` §2b.
 - **Auth present** (sessions, JWT, OAuth, Clerk/Auth0) → an auth/trust-boundary
   flow and tag the path `#pii`.
 - **Stores present** → Data & persistence view.
