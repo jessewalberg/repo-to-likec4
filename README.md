@@ -6,6 +6,12 @@ service maps, component breakdowns, request/sequence flows, data flow,
 deployment topology, and cheap tag overlays — all projected from one model so
 they never drift.
 
+Every box is **clickable through to the real code**: each element carries a short
+on-face summary, a rich markdown description, structured metadata, and absolute
+source links (the route file, the workflow YAML, the migration) — so the diagram
+is a navigable map of the repo, not just a picture. Hub-and-spoke topologies are
+grouped into lanes with focused drill-downs instead of collapsing into hairballs.
+
 Works in **Claude Code**, **Cursor**, **Codex**, and 50+ other agents that
 support the [Agent Skills](https://agentskills.io) standard.
 

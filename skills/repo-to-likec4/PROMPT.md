@@ -31,9 +31,13 @@ it.
 >    site deploys to GitHub Pages on push (no image files — hosted site only).
 >    Remind me to set Settings → Pages → Source = "GitHub Actions" once.
 >
-> Hold the quality bar: every element gets an icon, a description, and a
-> technology; keep each view at its altitude (no giant everything-diagram);
-> drill down with navigateTo instead of cramming.
+> Hold the quality bar: every element gets a short `summary` (node face) + a
+> markdown `description` (click panel) + `technology` + a correct icon + at least
+> one **absolute** source `link` (so I can click a box and jump to the real code)
+> + `metadata`. Keep each view at its altitude (no giant everything-diagram); if
+> any hub has many connections, group the spokes into lanes and give the hub its
+> own focused view (no hairballs). No `[...]` edges, no empty group boxes. Author
+> flows with `variant sequence` at leaf level. Use likec4 ≥ 1.57.0.
 
 ---
 

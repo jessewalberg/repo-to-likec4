@@ -32,6 +32,18 @@ rg -n -e 'DATABASE_URL|REDIS_URL|KAFKA|RABBIT|S3_|AWS_|STRIPE|TWILIO|SENDGRID|OP
    --no-heading -g '!**/node_modules/**' | head -60
 ```
 
+**Compute the source-link base now** (this is what makes nodes clickable — see §4b).
+For every element you'll record the file/dir it maps to and turn it into an
+ABSOLUTE blob URL (relative paths render dead on the published site):
+```sh
+REMOTE=$(git remote get-url origin)                 # e.g. git@github.com:org/repo.git
+REF=$(git rev-parse --abbrev-ref HEAD)              # or a tag/SHA for stable links
+# Normalise to an https base, then per element append the path (+ #L start-end):
+#   GitHub:  https://github.com/<org>/<repo>/blob/<ref>/<path>#L1-L40
+#   GitLab:  https://gitlab.com/<org>/<repo>/-/blob/<ref>/<path>#L1-40   (note /-/ and single-dash anchor)
+echo "$REMOTE" "$REF"
+```
+
 ## 2. High-signal files (read these — they often hand you the diagram)
 - **`docker-compose.yml` / `compose.yaml`** — services + `depends_on` + ports = a ready-made container map and edges.
 - **`k8s/`, `*.yaml` manifests, `helm/`** — Deployments, Services, Ingress = deployment topology.
@@ -88,6 +100,31 @@ Tag rules: internet-facing entry points `#public`; third parties `#external`;
 anything on an auth / personal-data path `#pii`; legacy `#deprecated`; in-flight
 work `#new`. Add `#team-*` / `#domain-*` if ownership is discoverable.
 
+## 4b. Capture source links + metadata + verify icons (makes nodes clickable)
+The recon already located each element's files — don't throw the paths away.
+For every element record three extra things so the model becomes a clickable map,
+not just a picture:
+
+- **`source`** → one or more ABSOLUTE blob URLs (`<base>/<path>#L<start>-L<end>`),
+  emitted as `link <url> 'Source'` (plus labelled links for the workflow YAML,
+  Dockerfile, `package.json`, OpenAPI, README where they exist). Point at the
+  *definition* — the route file, the worker entry, the migration. Never relative.
+- **`metadata`** → deterministic facts you already have: `path`, `language`,
+  `package`, `loc`, `owner` (from CODEOWNERS), and for CI/workflow nodes
+  `workflow`, `triggers`, `runner`. These render (alphabetised) in the click panel.
+- **`summary`** → the one-liner for the node face; keep the longer prose for
+  `description` (markdown). The LLM writes summary/description; the recon owns the
+  paths, links, icon ids, and metadata facts.
+
+**Verify every icon id before emitting it** — don't guess and don't reach for a
+same-named glyph in another pack (that's how `bootstrap:cursor`, a mouse-pointer,
+ended up labelling the Cursor editor):
+```sh
+npx likec4@1.57.0 list-icons --format json --group tech | rg -i 'postgres|redis|react'
+# brand has no pack icon? use its official SVG by ABSOLUTE url:  icon https://brand.com/favicon.svg
+# still nothing sensible?  icon none   — never a wrong-meaning glyph
+```
+
 ## 5. Manifest template
 Write this to `likec4/ARCHITECTURE-FACTS.md`. Keep it terse — it's an
 intermediate artifact, but a human should be able to skim and correct it.
@@ -105,10 +142,13 @@ single-app | monorepo-one-project | multi-project   (per SKILL.md table)
 - <name> — <what they do>
 
 ## Elements
-| id | kind | title | purpose (1 line) | technology | icon | tags |
-|----|------|-------|------------------|-----------|------|------|
-| api | service | API | REST API for the web client | Node/Express | tech:nodejs | #public |
-| db  | database | Postgres | primary datastore | PostgreSQL | tech:postgresql | #pii |
+`summary` = the short node-face line; `path` becomes the absolute source `link`;
+`facts` become `metadata`. Verify every `icon` id with `list-icons`.
+
+| id | kind | title | summary (face) | technology | icon | path → source link | facts (→ metadata) | tags |
+|----|------|-------|----------------|-----------|------|--------------------|--------------------|------|
+| api | service | API | REST API for the web client | Node/Express | tech:nodejs | apps/api/src/index.ts#L1-L40 | language=TS, package=@org/api | #public |
+| db  | database | Postgres | primary datastore | PostgreSQL | tech:postgresql | infra/db/schema.sql | engine=postgres, pii=profiles | #pii |
 | ...
 
 ## Edges
