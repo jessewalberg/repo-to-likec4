@@ -1,0 +1,33 @@
+# .gitlab-ci.yml — build & deploy the LikeC4 interactive site to GitLab Pages.
+# Place this file at the REPO ROOT (GitLab requires the filename `.gitlab-ci.yml`).
+#
+# Unlike GitHub, GitLab needs no "enable Pages" step: a job named `pages` that
+# publishes a `public/` artifact deploys automatically on the default branch.
+# `likec4 build` produces a static site (no headless browser needed — that's only
+# for PNG export), so a plain Node image is enough.
+
+stages: [deploy]
+
+pages:
+  stage: deploy
+  image: node:lts-alpine
+  script:
+    # The site is "strictly bound" to its base path, which differs between
+    # GitLab's path-based URLs (…gitlab.io/<project>/) and unique-domain URLs
+    # (<project>-<hash>.gitlab.io/). Derive it from the URL GitLab serves at.
+    - export BASE="$(node -e "process.stdout.write(new URL(process.env.CI_PAGES_URL).pathname.replace(/\/?$/, '/'))")"
+    - echo "Building LikeC4 site with base $BASE"
+    - npx -y likec4 build likec4 --output public --base "$BASE"
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  environment:
+    name: pages
+    url: $CI_PAGES_URL
+# Notes:
+# - `likec4` here points at the ./likec4 sources dir — change it if yours differ.
+# - Pin the version for reproducible builds, e.g. `npx -y likec4@<version> build …`.
+# - The live URL is shown on the pipeline's `pages` environment and under
+#   Settings → Pages (it's the value of $CI_PAGES_URL).

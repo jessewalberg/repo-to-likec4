@@ -1,0 +1,61 @@
+# Deploy the LikeC4 interactive diagrams site to GitHub Pages.
+# Best-fidelity render: pan/zoom, icons, drill-down (navigateTo), per-view "Share" links.
+#
+# ONE-TIME SETUP (required, or the first run fails):
+#   Repo → Settings → Pages → Build and deployment → Source = "GitHub Actions".
+#   Enabling this creates the `github-pages` environment the deploy job needs.
+#
+# Assumes your .c4 sources live in ./likec4 (change `path:` below if not).
+
+name: LikeC4 Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['likec4/**', '.github/workflows/likec4-pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deploy; don't cancel an in-progress production deploy.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v4
+
+      # The LikeC4 action bundles the CLI + Graphviz; `base` makes asset URLs
+      # resolve under https://<user>.github.io/<repo>/ (omit if using a custom domain).
+      - name: Build LikeC4 site
+        uses: likec4/actions@v1
+        with:
+          action: build
+          path: likec4
+          output: dist
+          base: ${{ steps.pages.outputs.base_path }}
+          use-dot-bin: 'true'
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
