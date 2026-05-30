@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { type ElkNode, buildElkGraph, extractPositions, layoutView, placeNewNodes } from './layout.ts'
+import { type ElkNode, buildElkGraph, extractPositions, layoutNew, layoutView, placeNewNodes } from './layout.ts'
 import { type Manifest, type View, emptyManifest } from './schema.ts'
 
 const SIZE = () => ({ w: 220, h: 72 })
@@ -103,4 +103,36 @@ test('placeNewNodes: works on an empty view (first-ever layout of all-new nodes)
   placeNewNodes(view, ['a', 'b'], SIZE)
   assert.ok(view.layout.a && view.layout.b, 'both placed')
   assert.ok(!boxesOverlap(view, 'a', 'b'), 'no overlap with no existing anchors')
+})
+
+// ---- layoutNew: new lane-children nest inside their lane ----
+test('layoutNew: a new node with an existing-lane parent nests inside the lane (lane-local) and grows the lane box', () => {
+  const m: Manifest = emptyManifest()
+  m.nodes.api = { id: 'api', type: 'component', parentId: 'lane:backend', data: { label: 'api' }, width: 220, height: 72 }
+  m.nodes.cache = { id: 'cache', type: 'component', parentId: 'lane:backend', data: { label: 'cache' }, width: 220, height: 72 } // NEW
+  const view: View = {
+    id: 'components',
+    title: 'Components',
+    nodeIds: ['api', 'cache'],
+    layout: { 'lane:backend': { x: 0, y: 0, w: 300, h: 160 }, api: { x: 24, y: 44 } }, // api positioned, cache not
+  }
+  m.views = [view]
+
+  layoutNew(m, ['cache'])
+
+  const cache = view.layout.cache
+  assert.ok(cache, 'new lane-child positioned')
+  assert.deepEqual(view.layout.api, { x: 24, y: 44 }, 'existing child frozen')
+  assert.ok(cache.y > view.layout.api.y, 'new child stacked below the existing one (lane-local)')
+  assert.ok(cache.x < 300 && cache.y < view.layout['lane:backend'].h!, 'placed within the (grown) lane bounds')
+  assert.ok(view.layout['lane:backend'].h! > 160, 'lane grew to contain the new child')
+})
+
+test('layoutNew: a new node whose lane is NOT laid out falls back to root placement', () => {
+  const m: Manifest = emptyManifest()
+  m.nodes.x = { id: 'x', type: 'component', parentId: 'lane:ghost', data: { label: 'x' }, width: 220, height: 72 }
+  const view: View = { id: 'v', title: 'V', nodeIds: ['x'], layout: {} } // lane:ghost has no layout entry
+  m.views = [view]
+  layoutNew(m, ['x'])
+  assert.ok(view.layout.x && Number.isFinite(view.layout.x.x), 'placed at root, no crash')
 })
