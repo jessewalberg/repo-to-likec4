@@ -6,6 +6,7 @@ import { buildModel } from './model.ts'
 import { layoutAll, layoutNew } from './layout.ts'
 import { mergeManifest } from './merge.ts'
 import { detectLikeC4Artifacts, formatMigrationNotice, removeLikeC4Artifacts } from './migrate.ts'
+import { detectRenames } from './rename-detect.ts'
 import { reconModuleGraph } from './recon.ts'
 import type { Manifest, MergeReport } from './schema.ts'
 import { buildSite } from './site.ts'
@@ -58,6 +59,9 @@ let model: Manifest
 let report: MergeReport | undefined
 if (existsSync(archPath)) {
   const current = JSON.parse(readFileSync(archPath, 'utf8')) as Manifest
+  // Detect moves/renames between the previous snapshot and this recon so the
+  // merge migrates human edits to the new ids instead of orphaning them.
+  fresh.idAliases = { ...fresh.idAliases, ...detectRenames(current, fresh) }
   const merged = mergeManifest(current, fresh, current)
   model = merged.manifest
   report = merged.report
