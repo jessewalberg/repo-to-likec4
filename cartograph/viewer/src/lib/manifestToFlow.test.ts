@@ -118,6 +118,14 @@ test('manifestToFlow: only in-view edges; mapped to sync variant with arrow mark
   assert.ok(edges[0].markerEnd)
 })
 
+test('manifestToFlow: suppressed nodes/edges are excluded from the rendered graph', () => {
+  const { manifest, view } = fixture()
+  manifest.suppressions = { nodes: ['m:dag'], edges: [] }
+  const { nodes, edges } = manifestToFlow(view, manifest)
+  assert.ok(!nodes.some((n) => n.id === 'm:dag'), 'suppressed node hidden')
+  assert.equal(edges.length, 0, 'an edge incident to a suppressed node is dropped')
+})
+
 test('manifestToFlow: missing node w/h falls back to 220x72 (no NaN)', () => {
   const { manifest, view } = fixture()
   delete manifest.nodes['m:dag'].width

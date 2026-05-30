@@ -1,12 +1,15 @@
 import { Fragment } from "react"
 import {
   ChevronRight,
+  Download,
   History,
   Maximize,
   Network,
   PanelLeft,
+  Redo2,
   Route as RouteIcon,
   Search,
+  Undo2,
   Workflow,
 } from "lucide-react"
 import {
@@ -33,6 +36,13 @@ interface AppHeaderProps {
   onFit: () => void
   onOpenSearch: () => void
   onToggleSidebar: () => void
+  // Editing parity (undo/redo/export) — optional so the header degrades cleanly.
+  dirty?: boolean
+  canUndo?: boolean
+  canRedo?: boolean
+  onUndo?: () => void
+  onRedo?: () => void
+  onExport?: () => void
 }
 
 export function AppHeader({
@@ -44,6 +54,12 @@ export function AppHeader({
   onFit,
   onOpenSearch,
   onToggleSidebar,
+  dirty = false,
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
+  onExport,
 }: AppHeaderProps): React.ReactElement {
   // Selected-node label looked up from the manifest (graceful: unknown id -> no
   // pin rather than a blank/undefined crumb).
@@ -138,6 +154,40 @@ export function AppHeader({
           </span>
           <span className="carto-header__layoutdir-words">{dir.words}</span>
         </span>
+
+        <span className="carto-header__divider" aria-hidden="true" />
+
+        {/* ---- Editing parity: undo / redo / export ---- */}
+        <button
+          type="button"
+          className="carto-header__icon-btn"
+          onClick={onUndo}
+          disabled={!canUndo}
+          aria-label="Undo"
+          title="Undo  ⌘Z"
+        >
+          <Undo2 size={15} strokeWidth={2} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="carto-header__icon-btn"
+          onClick={onRedo}
+          disabled={!canRedo}
+          aria-label="Redo"
+          title="Redo  ⇧⌘Z"
+        >
+          <Redo2 size={15} strokeWidth={2} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="carto-header__icon-btn carto-header__export"
+          onClick={onExport}
+          aria-label={dirty ? "Export edited manifest (unsaved edits)" : "Export manifest"}
+          title="Download architecture.json"
+        >
+          <Download size={15} strokeWidth={2} aria-hidden="true" />
+          {dirty ? <span className="carto-header__dirty" aria-hidden="true" /> : null}
+        </button>
 
         <span className="carto-header__divider" aria-hidden="true" />
 

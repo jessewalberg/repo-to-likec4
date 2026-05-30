@@ -7,6 +7,8 @@ import {
   Check,
   Copy,
   ExternalLink,
+  EyeOff,
+  Pin,
   X,
 } from "lucide-react"
 
@@ -49,6 +51,11 @@ interface DetailPanelProps {
   onOpenDoc?: (docRef: string, nodeId: string) => void
   /** Whether a doc page actually exists (drives the "not written yet" sub-label). */
   docExists?: (docRef: string) => boolean
+  // Editing parity (optional): rename / pin / annotate / hide.
+  onRename?: (nodeId: string, label: string) => void
+  onTogglePin?: (nodeId: string, pinned: boolean) => void
+  onAnnotate?: (nodeId: string, text: string) => void
+  onHide?: (nodeId: string) => void
 }
 
 // ---------------------------------------------------------------------------
@@ -113,6 +120,10 @@ export function DetailPanel({
   onClose,
   onOpenDoc,
   docExists,
+  onRename,
+  onTogglePin,
+  onAnnotate,
+  onHide,
 }: DetailPanelProps): React.ReactElement {
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -181,6 +192,10 @@ export function DetailPanel({
         onClose={onClose}
         onOpenDoc={onOpenDoc}
         docExists={docExists}
+        onRename={onRename}
+        onTogglePin={onTogglePin}
+        onAnnotate={onAnnotate}
+        onHide={onHide}
       />
     </aside>
   )
@@ -203,6 +218,10 @@ function NodeDetail({
   onClose,
   onOpenDoc,
   docExists,
+  onRename,
+  onTogglePin,
+  onAnnotate,
+  onHide,
 }: {
   node: ManifestNode
   manifest: Manifest
@@ -211,6 +230,10 @@ function NodeDetail({
   onClose: () => void
   onOpenDoc?: (docRef: string, nodeId: string) => void
   docExists?: (docRef: string) => boolean
+  onRename?: (nodeId: string, label: string) => void
+  onTogglePin?: (nodeId: string, pinned: boolean) => void
+  onAnnotate?: (nodeId: string, text: string) => void
+  onHide?: (nodeId: string) => void
 }): React.ReactElement {
   const kind = kindForType(node.type)
   const conf = confidencePill(node.data.confidence)
@@ -359,15 +382,106 @@ function NodeDetail({
           </section>
         ) : null}
 
-        {/* Summary — only when present (absent on all 15 fixture nodes). */}
+        {/* Summary — only when present. */}
         {summary ? (
           <section className="carto-detail__section" aria-label="Summary">
             <p className="carto-detail__caption">Summary</p>
             <p className="carto-detail__summary">{summary}</p>
           </section>
         ) : null}
+
+        {/* Edit — rename / pin / annotate / hide (editing parity). */}
+        {onRename || onTogglePin || onAnnotate || onHide ? (
+          <EditSection
+            node={node}
+            onRename={onRename}
+            onTogglePin={onTogglePin}
+            onAnnotate={onAnnotate}
+            onHide={onHide}
+          />
+        ) : null}
       </div>
     </>
+  )
+}
+
+function EditSection({
+  node,
+  onRename,
+  onTogglePin,
+  onAnnotate,
+  onHide,
+}: {
+  node: ManifestNode
+  onRename?: (nodeId: string, label: string) => void
+  onTogglePin?: (nodeId: string, pinned: boolean) => void
+  onAnnotate?: (nodeId: string, text: string) => void
+  onHide?: (nodeId: string) => void
+}): React.ReactElement {
+  const [label, setLabel] = useState(node.data.label)
+  const [note, setNote] = useState(node.data.annotation ?? "")
+  // Re-seed local fields when the selected node changes.
+  const seededFor = useRef(node.id)
+  if (seededFor.current !== node.id) {
+    seededFor.current = node.id
+    setLabel(node.data.label)
+    setNote(node.data.annotation ?? "")
+  }
+  const pinned = node.data.pinned === true
+
+  return (
+    <section className="carto-detail__section carto-detail__edit" aria-label="Edit">
+      <p className="carto-detail__caption">Edit</p>
+
+      {onRename ? (
+        <label className="carto-detail__field">
+          <span className="carto-detail__field-label">Label</span>
+          <input
+            className="carto-detail__input"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            onBlur={() => label.trim() && label !== node.data.label && onRename(node.id, label.trim())}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") (e.target as HTMLInputElement).blur()
+            }}
+          />
+        </label>
+      ) : null}
+
+      {onAnnotate ? (
+        <label className="carto-detail__field">
+          <span className="carto-detail__field-label">Annotation</span>
+          <textarea
+            className="carto-detail__textarea"
+            rows={2}
+            placeholder="Add a note…"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            onBlur={() => note !== (node.data.annotation ?? "") && onAnnotate(node.id, note)}
+          />
+        </label>
+      ) : null}
+
+      <div className="carto-detail__edit-actions">
+        {onTogglePin ? (
+          <button
+            type="button"
+            className="carto-detail__edit-btn"
+            aria-pressed={pinned}
+            onClick={() => onTogglePin(node.id, !pinned)}
+          >
+            <Pin size={13} strokeWidth={2} aria-hidden="true" />
+            {pinned ? "Pinned" : "Pin"}
+          </button>
+        ) : null}
+        {onHide ? (
+          <button type="button" className="carto-detail__edit-btn carto-detail__edit-btn--danger" onClick={() => onHide(node.id)}>
+            <EyeOff size={13} strokeWidth={2} aria-hidden="true" />
+            Hide
+          </button>
+        ) : null}
+      </div>
+    </section>
   )
 }
 

@@ -61,7 +61,11 @@ export interface FlowGraph {
 }
 
 export function manifestToFlow(view: View, manifest: Manifest): FlowGraph {
-  const inView = new Set(view.nodeIds)
+  // Suppressed (human-hidden) nodes/edges are excluded from the rendered graph.
+  const suppressedNodes = new Set(manifest.suppressions?.nodes ?? [])
+  const suppressedEdges = new Set(manifest.suppressions?.edges ?? [])
+  const visibleIds = view.nodeIds.filter((id) => !suppressedNodes.has(id))
+  const inView = new Set(visibleIds)
 
   // Degree counts (only edges fully inside the view).
   const outCount = new Map<string, number>()
@@ -74,7 +78,7 @@ export function manifestToFlow(view: View, manifest: Manifest): FlowGraph {
 
   // Lane order: distinct lane parentIds in first-appearance order across the view.
   const laneOrder: string[] = []
-  for (const id of view.nodeIds) {
+  for (const id of visibleIds) {
     const p = manifest.nodes[id]?.parentId
     if (p && manifest.groups[p] && !laneOrder.includes(p)) laneOrder.push(p)
   }
@@ -86,7 +90,7 @@ export function manifestToFlow(view: View, manifest: Manifest): FlowGraph {
   for (const laneId of laneOrder) {
     const group = manifest.groups[laneId]
     const pos = view.layout[laneId]
-    const children = view.nodeIds.filter((id) => manifest.nodes[id]?.parentId === laneId)
+    const children = visibleIds.filter((id) => manifest.nodes[id]?.parentId === laneId)
     const { w, h } = laneSize(pos, children, view)
     const zone = zoneForLane(laneId, laneOrder)
     laneNodes.push({
@@ -109,7 +113,7 @@ export function manifestToFlow(view: View, manifest: Manifest): FlowGraph {
   }
 
   // --- cards after (children; lane-LOCAL positions) ---
-  for (const id of view.nodeIds) {
+  for (const id of visibleIds) {
     const n = manifest.nodes[id]
     if (!n) continue
     const pos = view.layout[id]
@@ -150,6 +154,7 @@ export function manifestToFlow(view: View, manifest: Manifest): FlowGraph {
   // --- edges (only those fully inside the view) ---
   const edges: CartoEdge[] = []
   for (const e of Object.values(manifest.edges)) {
+    if (suppressedEdges.has(e.id)) continue
     if (!inView.has(e.source) || !inView.has(e.target)) continue
     const variant = variantForEdge(e.type)
     const targetKind = kindForType(manifest.nodes[e.target]?.type ?? 'external')

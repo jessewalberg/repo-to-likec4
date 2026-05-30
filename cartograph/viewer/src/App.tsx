@@ -12,8 +12,10 @@ import { MarkdownPage } from './components/MarkdownPage'
 import { Sidebar } from './components/Sidebar'
 import { SidebarProvider, useSidebar } from './components/ui/leanSidebar'
 import { parseDoc } from './lib/doc'
+import { initEditStore, useEditStore, useUndoRedo } from './lib/editStore'
+import { downloadManifest } from './lib/exportManifest'
 import { buildSearchIndex } from './lib/searchIndex'
-import type { AppRoute, CartographData, DocPage, NavEntry, View } from './lib/types'
+import type { AppRoute, CartographData, DocPage, Manifest, NavEntry, View } from './lib/types'
 
 export function App({ data }: { data: CartographData }) {
   return (
@@ -47,10 +49,25 @@ function routeFromEntry(entry: NavEntry): AppRoute | null {
 }
 
 function Shell({ data }: { data: CartographData }) {
-  const { architecture: manifest, site } = data
-  const views = manifest.views
+  const { site } = data
   const sidebar = useSidebar()
   const { fitView } = useReactFlow()
+
+  // The working manifest lives in the zundo store (undo/redo); the viewer renders
+  // from it so every edit is live + reversible. Seed it once from the loaded data.
+  const stored = useEditStore((s) => s.manifest)
+  const dirty = useEditStore((s) => s.dirty)
+  const move = useEditStore((s) => s.move)
+  const pin = useEditStore((s) => s.pin)
+  const rename = useEditStore((s) => s.rename)
+  const annotate = useEditStore((s) => s.annotate)
+  const hideNode = useEditStore((s) => s.hideNode)
+  const { canUndo, canRedo, undo, redo } = useUndoRedo()
+  useEffect(() => {
+    initEditStore(data.architecture)
+  }, [data])
+  const manifest: Manifest = stored ?? data.architecture
+  const views = manifest.views
 
   const [route, setRoute] = useState<AppRoute>(() => routeFromHome(site.home, views))
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
@@ -161,6 +178,12 @@ function Shell({ data }: { data: CartographData }) {
         onFit={onFit}
         onOpenSearch={() => setCommandOpen(true)}
         onToggleSidebar={sidebar.toggle}
+        dirty={dirty}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={undo}
+        onRedo={redo}
+        onExport={() => downloadManifest(manifest)}
       />
       <div className="flex min-h-0 flex-1">
         <Sidebar
@@ -176,9 +199,11 @@ function Shell({ data }: { data: CartographData }) {
           <Main
             route={route}
             data={data}
+            manifest={manifest}
             selectedNodeId={selectedNodeId}
             onSelectNode={selectNode}
             onOpenInArchitecture={(id) => selectNode(id)}
+            onMoveNode={move}
           />
         </main>
         <DetailPanel
@@ -195,6 +220,13 @@ function Shell({ data }: { data: CartographData }) {
             setRoute({ kind: 'page', page: docRef, node: nodeId })
           }}
           docExists={(ref) => Boolean(data.pages[ref])}
+          onRename={rename}
+          onTogglePin={pin}
+          onAnnotate={annotate}
+          onHide={(id) => {
+            hideNode(id, true)
+            setSelectedNodeId(null)
+          }}
         />
       </div>
       <CommandPalette index={searchIndex} open={commandOpen} onOpenChange={setCommandOpen} />
@@ -206,22 +238,33 @@ function Shell({ data }: { data: CartographData }) {
 function Main({
   route,
   data,
+  manifest,
   selectedNodeId,
   onSelectNode,
   onOpenInArchitecture,
+  onMoveNode,
 }: {
   route: AppRoute
   data: CartographData
+  manifest: Manifest
   selectedNodeId: string | null
   onSelectNode: (id: string | null) => void
   onOpenInArchitecture: (id: string) => void
+  onMoveNode: (viewId: string, nodeId: string, pos: { x: number; y: number }) => void
 }) {
-  const { architecture: manifest } = data
-
   if (route.kind === 'view') {
     const view = manifest.views.find((v) => v.id === route.viewId)
     if (!view) return <EmptyState icon={<Compass />} title="View not found" body={`No view "${route.viewId}".`} />
-    return <Canvas view={view} manifest={manifest} selectedNodeId={selectedNodeId} onSelect={onSelectNode} />
+    return (
+      <Canvas
+        view={view}
+        manifest={manifest}
+        selectedNodeId={selectedNodeId}
+        onSelect={onSelectNode}
+        editable
+        onMoveNode={(id, pos) => onMoveNode(view.id, id, pos)}
+      />
+    )
   }
 
   if (route.kind === 'page') {

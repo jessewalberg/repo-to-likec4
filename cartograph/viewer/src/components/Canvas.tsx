@@ -26,6 +26,10 @@ interface CanvasProps {
   manifest: Manifest
   selectedNodeId: string | null
   onSelect: (id: string | null) => void
+  /** Editing parity: allow dragging cards to reposition. */
+  editable?: boolean
+  /** Called on drag-stop with the node's (lane-local) position to persist. */
+  onMoveNode?: (nodeId: string, pos: { x: number; y: number }) => void
 }
 
 // CONTRACT §3/§6/§9/§12 — the React Flow canvas. Read-only (no drag/connect),
@@ -55,7 +59,7 @@ function isCard(n: CartoNode): n is CartoNode & { data: CardNodeData } {
   return n.type === "card"
 }
 
-export function Canvas({ view, manifest, selectedNodeId, onSelect }: CanvasProps): React.ReactElement {
+export function Canvas({ view, manifest, selectedNodeId, onSelect, editable = false, onMoveNode }: CanvasProps): React.ReactElement {
   const reduced = useReducedMotion()
   const { fitView } = useReactFlow()
 
@@ -194,6 +198,17 @@ export function Canvas({ view, manifest, selectedNodeId, onSelect }: CanvasProps
   // Clicking empty canvas clears selection.
   const onPaneClick = useCallback(() => onSelect(null), [onSelect])
 
+  // Editing parity: persist a drag to the manifest (lane-local position for a
+  // child of a lane — exactly what node.position carries). The store update
+  // re-derives `initial`, which the sync effect above applies, so the drop sticks.
+  const onNodeDragStop = useCallback(
+    (_e: React.MouseEvent, node: CartoNode) => {
+      if (node.type !== "card") return
+      onMoveNode?.(node.id, { x: node.position.x, y: node.position.y })
+    },
+    [onMoveNode],
+  )
+
   // --- roving-tabindex keyboard model (§9) ----------------------------------
   const focusCardDom = useCallback((id: string) => {
     const el = wrapRef.current?.querySelector<HTMLElement>(`.react-flow__node[data-id="${id}"]`)
@@ -314,7 +329,8 @@ export function Canvas({ view, manifest, selectedNodeId, onSelect }: CanvasProps
         onNodeMouseEnter={onNodeMouseEnter}
         onNodeMouseLeave={onNodeMouseLeave}
         onPaneClick={onPaneClick}
-        nodesDraggable={false}
+        onNodeDragStop={onNodeDragStop}
+        nodesDraggable={editable}
         nodesConnectable={false}
         elementsSelectable
         fitView

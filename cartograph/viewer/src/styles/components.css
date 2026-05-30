@@ -2765,3 +2765,65 @@
   white-space: nowrap;
 }
 
+
+/* ============================================================================
+   Editing parity — header toolbar (undo/redo/export) + DetailPanel Edit section.
+   ========================================================================== */
+.carto-header__icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.carto-header__export { position: relative; }
+.carto-header__dirty {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--focus-ring-color);
+  box-shadow: 0 0 0 1.5px var(--canvas);
+}
+
+.carto-detail__edit { border-top: 1px solid var(--divider); padding-top: var(--sp-3); }
+.carto-detail__field { display: block; margin-bottom: var(--sp-2); }
+.carto-detail__field-label {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin-bottom: 3px;
+}
+.carto-detail__input,
+.carto-detail__textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--canvas-sunken);
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+  resize: vertical;
+}
+.carto-detail__input:focus-visible,
+.carto-detail__textarea:focus-visible { outline: none; box-shadow: var(--focus-ring); border-color: var(--focus-ring-color); }
+.carto-detail__edit-actions { display: flex; gap: var(--sp-2); margin-top: var(--sp-1); }
+.carto-detail__edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--elev-card);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: background-color 100ms ease, color 100ms ease;
+}
+.carto-detail__edit-btn:hover { background: var(--n-50); color: var(--text-strong); }
+.carto-detail__edit-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.carto-detail__edit-btn[aria-pressed="true"] { background: var(--infra-bg); color: var(--infra-fg); border-color: var(--infra-border); }
+.carto-detail__edit-btn--danger:hover { background: var(--queue-bg); color: var(--queue-fg); border-color: var(--queue-border); }
