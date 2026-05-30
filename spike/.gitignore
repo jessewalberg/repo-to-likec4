@@ -1,0 +1,5 @@
+# Phase-0 spike workspaces — throwaway proof code. Keep the source, not the deps/temp.
+node_modules/
+package-lock.json
+.tmp-sf/
+*.log

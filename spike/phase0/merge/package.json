@@ -1,0 +1,10 @@
+{
+  "name": "cartograph-phase0-merge-spike",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Phase-0 gating de-risk: prove the provenance + stable-ID + suppressions + idAliases three-way merge preserves human edits across real refactors. Pure TS, zero deps, Node 24 native test runner + type stripping.",
+  "scripts": {
+    "test": "node --test"
+  }
+}
