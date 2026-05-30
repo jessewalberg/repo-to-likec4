@@ -1,0 +1,14 @@
+{
+  "name": "x6-spike",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "@antv/x6": "^3.1.7",
+    "jsdom": "^29.1.1",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  }
+}
