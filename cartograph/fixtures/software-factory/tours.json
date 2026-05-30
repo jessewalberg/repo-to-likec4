@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "tours": [
+    {
+      "id": "understand",
+      "title": "Understand the system",
+      "steps": [
+        {
+          "title": "Understand the system",
+          "body": "This map covers 15 modules across 2 areas. We'll start at the entry points, then visit the busiest hubs."
+        },
+        {
+          "nodeId": "module:tools/factory/cli.mjs",
+          "title": "Entry point: cli.mjs",
+          "body": "cli.mjs is a starting point — nothing imports it, and it pulls in 5 modules."
+        },
+        {
+          "nodeId": "module:tools/factory/cursor-scope-run.mjs",
+          "title": "Entry point: cursor-scope-run.mjs",
+          "body": "cursor-scope-run.mjs is a starting point — nothing imports it, and it pulls in 2 modules."
+        },
+        {
+          "nodeId": "module:tools/factory/child-issues-run.mjs",
+          "title": "Entry point: child-issues-run.mjs",
+          "body": "child-issues-run.mjs is a starting point — nothing imports it, and it pulls in 1 module."
+        },
+        {
+          "nodeId": "module:tools/factory/lib/policy.mjs",
+          "title": "Hub: policy.mjs",
+          "body": "policy.mjs is central — 3 modules import it and it imports 2 modules."
+        },
+        {
+          "nodeId": "module:tools/factory/lib/dag.mjs",
+          "title": "Hub: dag.mjs",
+          "body": "dag.mjs is central — 3 modules import it and it imports 0 modules."
+        },
+        {
+          "nodeId": "module:tools/factory/lib/schema.mjs",
+          "title": "Hub: schema.mjs",
+          "body": "schema.mjs is central — 2 modules import it and it imports 1 module."
+        }
+      ]
+    },
+    {
+      "id": "fix-bug",
+      "title": "Fix a bug",
+      "steps": [
+        {
+          "title": "Fix a bug",
+          "body": "Start from where the behaviour lives, then follow its imports toward the cause."
+        },
+        {
+          "nodeId": "module:tools/factory/cli.mjs",
+          "title": "Likely touchpoint: cli.mjs",
+          "body": "cli.mjs is the most-connected module, so a change here ripples widely — a good place to start tracing."
+        },
+        {
+          "nodeId": "module:tools/factory/lib/envelope.mjs",
+          "title": "It depends on envelope.mjs",
+          "body": "cli.mjs imports envelope.mjs — check here if the bug is in shared behaviour."
+        },
+        {
+          "nodeId": "module:tools/factory/lib/diagrams.mjs",
+          "title": "It depends on diagrams.mjs",
+          "body": "cli.mjs imports diagrams.mjs — check here if the bug is in shared behaviour."
+        },
+        {
+          "nodeId": "module:tools/factory/lib/metrics.mjs",
+          "title": "It depends on metrics.mjs",
+          "body": "cli.mjs imports metrics.mjs — check here if the bug is in shared behaviour."
+        }
+      ]
+    },
+    {
+      "id": "add-feature",
+      "title": "Add a feature",
+      "steps": [
+        {
+          "title": "Add a feature",
+          "body": "Find the right area to extend — each area below groups related modules."
+        },
+        {
+          "nodeId": "container:lib",
+          "title": "Area: lib",
+          "body": "lib holds 9 modules. New code that fits this area lives here."
+        },
+        {
+          "nodeId": "container:root",
+          "title": "Area: Root",
+          "body": "Root holds 6 modules. New code that fits this area lives here."
+        }
+      ]
+    }
+  ]
+}
