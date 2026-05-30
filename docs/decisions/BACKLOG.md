@@ -8,7 +8,8 @@ implicit phased plan explicit; update it as items land.
 
 - **Layout stage** — elkjs run once per view, positions baked into `view.layout` (`fe5e093`).
 - **LikeC4 migration/cleanup** — re-mapping a repo that still carries old `repo-to-likec4`
-  artifacts now detects them and removes the wholly-owned ones on `--migrate` (`186b702`).
+  artifacts now detects them and removes the wholly-owned ones by default unless
+  `--keep-c4` is passed (`186b702`).
 - **Three-way merge wired into the pipeline** — a re-run over an existing `architecture.json`
   merges instead of clobbering; human label/pin/position/annotation/suppression all survive,
   removed nodes are muted not deleted, renames migrate via `idAliases` (`3baa263`, `861b66b`,

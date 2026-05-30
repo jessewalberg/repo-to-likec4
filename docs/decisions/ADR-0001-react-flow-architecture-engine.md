@@ -75,4 +75,7 @@ The de-risking spike ([phase0-findings](../research/phase0-findings.md)) confirm
 
 ## Source notes
 
-This ADR records a *recommendation* from research, not yet a committed build. The renderer verdict is high-confidence and convergent across 11 dimensions; the feasibility of the merge layer is the open variable the Phase-0 spike exists to resolve. Promote to `accepted` after the spike passes; if it fails, mark `superseded` and adopt option 4.
+This ADR began as a research recommendation and is now the accepted product
+direction. The Phase-0 spike passed, the merge layer is implemented, and the
+Cartograph generator/viewer are the active shipped path. Keep this record as the
+decision history; use [BACKLOG.md](BACKLOG.md) for current shipped/deferred work.
