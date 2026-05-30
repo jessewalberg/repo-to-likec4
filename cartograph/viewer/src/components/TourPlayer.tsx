@@ -42,6 +42,10 @@ export function TourPlayer({ tour, onFocus, onExit }: TourPlayerProps): React.Re
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Don't hijack arrows/Esc while the user is typing (e.g. the panel's rename
+      // / annotation fields are open during a tour).
+      const t = e.target as HTMLElement | null
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
       if (e.key === 'ArrowRight') next()
       else if (e.key === 'ArrowLeft') prev()
       else if (e.key === 'Escape') onExit()
@@ -50,11 +54,17 @@ export function TourPlayer({ tour, onFocus, onExit }: TourPlayerProps): React.Re
     return () => window.removeEventListener('keydown', onKey)
   }, [next, prev, onExit])
 
+  // Move focus into the tour card when it opens (a11y: keyboard/SR users land here).
+  const cardRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    cardRef.current?.focus()
+  }, [])
+
   if (!step) return null
 
   return (
     <div className="carto-tour" role="dialog" aria-label={`Tour: ${tour.title}`} aria-modal="false">
-      <div className="carto-tour__card" aria-live="polite">
+      <div className="carto-tour__card" ref={cardRef} tabIndex={-1} aria-live="polite">
         <div className="carto-tour__head">
           <span className="carto-tour__eyebrow">
             <GraduationCap size={13} strokeWidth={2} aria-hidden="true" />

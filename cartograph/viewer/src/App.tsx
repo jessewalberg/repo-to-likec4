@@ -146,7 +146,9 @@ function Shell({ data }: { data: CartographData }) {
   const onFit = useCallback(() => fitView({ padding: 0.2, duration: 300 }), [fitView])
 
   // Center the canvas on a node (best-effort: absolute position from the manifest;
-  // delayed so it lands after a view switch's fitView settles).
+  // delayed so it lands after a view switch's fitView settles). One pending timer
+  // at a time so rapid tour steps don't stack overlapping setCenter calls.
+  const centerTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const centerOnNode = useCallback(
     (nodeId: string) => {
       const v = views.find((vw) => vw.nodeIds.includes(nodeId))
@@ -162,7 +164,8 @@ function Shell({ data }: { data: CartographData }) {
         x += v.layout[parent].x
         y += v.layout[parent].y
       }
-      window.setTimeout(() => setCenter(x, y, { zoom: 1.1, duration: 400 }), 350)
+      if (centerTimer.current) clearTimeout(centerTimer.current)
+      centerTimer.current = setTimeout(() => setCenter(x, y, { zoom: 1.1, duration: 400 }), 350)
     },
     [views, manifest, setCenter],
   )
