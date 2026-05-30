@@ -363,6 +363,54 @@
       "width": 220,
       "height": 72,
       "parentId": "lane:root"
+    },
+    "container:lib": {
+      "id": "container:lib",
+      "type": "container",
+      "origin": "machine",
+      "data": {
+        "label": "lib",
+        "summary": "9 modules",
+        "metadata": {
+          "path": "tools/factory/lib",
+          "modules": 9
+        },
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib"
+          }
+        ],
+        "doc": "pages/containers/lib.md",
+        "confidence": "static",
+        "provenance": {}
+      },
+      "width": 240,
+      "height": 84
+    },
+    "container:root": {
+      "id": "container:root",
+      "type": "container",
+      "origin": "machine",
+      "data": {
+        "label": "Root",
+        "summary": "6 modules",
+        "metadata": {
+          "path": "tools/factory",
+          "modules": 6
+        },
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory"
+          }
+        ],
+        "doc": "pages/containers/root.md",
+        "confidence": "static",
+        "provenance": {}
+      },
+      "width": 240,
+      "height": 84
     }
   },
   "edges": {
@@ -477,6 +525,14 @@
       "type": "imports",
       "origin": "machine",
       "confidence": "static"
+    },
+    "imports:container:root->container:lib": {
+      "id": "imports:container:root->container:lib",
+      "source": "container:root",
+      "target": "container:lib",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
     }
   },
   "suppressions": {
@@ -497,6 +553,30 @@
     }
   },
   "views": [
+    {
+      "id": "containers",
+      "title": "Containers",
+      "level": 2,
+      "nodeIds": [
+        "container:lib",
+        "container:root"
+      ],
+      "layoutDir": "DOWN",
+      "layout": {
+        "container:lib": {
+          "x": 24,
+          "y": 192,
+          "w": 240,
+          "h": 84
+        },
+        "container:root": {
+          "x": 24,
+          "y": 44,
+          "w": 240,
+          "h": 84
+        }
+      }
+    },
     {
       "id": "components",
       "title": "Components",
@@ -591,6 +671,113 @@
         "module:tools/factory/lib/schema.mjs": {
           "x": 349.33,
           "y": 180
+        }
+      }
+    },
+    {
+      "id": "components:lib",
+      "title": "lib",
+      "level": 3,
+      "nodeIds": [
+        "module:tools/factory/lib/claude-routine.mjs",
+        "module:tools/factory/lib/dag.mjs",
+        "module:tools/factory/lib/diagrams.mjs",
+        "module:tools/factory/lib/envelope.mjs",
+        "module:tools/factory/lib/glob.mjs",
+        "module:tools/factory/lib/metrics.mjs",
+        "module:tools/factory/lib/policy.mjs",
+        "module:tools/factory/lib/reconcile.mjs",
+        "module:tools/factory/lib/schema.mjs"
+      ],
+      "layoutDir": "DOWN",
+      "layout": {
+        "lane:lib": {
+          "x": 24,
+          "y": 44,
+          "w": 1608,
+          "h": 412
+        },
+        "module:tools/factory/lib/claude-routine.mjs": {
+          "x": 292,
+          "y": 44
+        },
+        "module:tools/factory/lib/dag.mjs": {
+          "x": 1059.33,
+          "y": 316
+        },
+        "module:tools/factory/lib/diagrams.mjs": {
+          "x": 560,
+          "y": 44
+        },
+        "module:tools/factory/lib/envelope.mjs": {
+          "x": 1364,
+          "y": 44
+        },
+        "module:tools/factory/lib/glob.mjs": {
+          "x": 791.33,
+          "y": 180
+        },
+        "module:tools/factory/lib/metrics.mjs": {
+          "x": 1096,
+          "y": 44
+        },
+        "module:tools/factory/lib/policy.mjs": {
+          "x": 828,
+          "y": 44
+        },
+        "module:tools/factory/lib/reconcile.mjs": {
+          "x": 24,
+          "y": 44
+        },
+        "module:tools/factory/lib/schema.mjs": {
+          "x": 1059.33,
+          "y": 180
+        }
+      }
+    },
+    {
+      "id": "components:root",
+      "title": "Root",
+      "level": 3,
+      "nodeIds": [
+        "module:tools/factory/child-issues-run.mjs",
+        "module:tools/factory/cli.mjs",
+        "module:tools/factory/cursor-scope-run.mjs",
+        "module:tools/factory/epic-coordinator-run.mjs",
+        "module:tools/factory/policy-gate-run.mjs",
+        "module:tools/factory/reconcile-run.mjs"
+      ],
+      "layoutDir": "DOWN",
+      "layout": {
+        "lane:root": {
+          "x": 24,
+          "y": 44,
+          "w": 1608,
+          "h": 140
+        },
+        "module:tools/factory/child-issues-run.mjs": {
+          "x": 292,
+          "y": 44
+        },
+        "module:tools/factory/cli.mjs": {
+          "x": 828,
+          "y": 44
+        },
+        "module:tools/factory/cursor-scope-run.mjs": {
+          "x": 24,
+          "y": 44
+        },
+        "module:tools/factory/epic-coordinator-run.mjs": {
+          "x": 1096,
+          "y": 44
+        },
+        "module:tools/factory/policy-gate-run.mjs": {
+          "x": 1364,
+          "y": 44
+        },
+        "module:tools/factory/reconcile-run.mjs": {
+          "x": 560,
+          "y": 44
         }
       }
     }

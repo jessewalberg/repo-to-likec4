@@ -17,7 +17,7 @@ const DEFAULT_H = 72
 const LANE_PAD = 24
 
 const KIND_BY_TYPE: Record<string, KindKey> = {
-  service: 'service', gateway: 'service', worker: 'service', function: 'service', api: 'service',
+  container: 'service', service: 'service', gateway: 'service', worker: 'service', function: 'service', api: 'service',
   webapp: 'frontend', frontend: 'frontend', ui: 'frontend', web: 'frontend',
   datastore: 'datastore', database: 'datastore', db: 'datastore', cache: 'datastore', storage: 'datastore',
   queue: 'queue', event: 'queue', topic: 'queue', stream: 'queue', state: 'queue',

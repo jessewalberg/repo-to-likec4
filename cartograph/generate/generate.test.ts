@@ -57,6 +57,32 @@ test('buildModel: groups nodes into directory lanes and builds a Components view
   assert.deepEqual(view!.layout, {}, 'positions left empty for the layout stage')
 })
 
+test('buildModel: builds a C4 ladder (Containers + per-dir views + aggregated container edges) when >=2 dirs', () => {
+  const model = buildModel(reconFixture(), OPTS)
+  // synthetic container nodes for the two dirs (root, lib)
+  assert.ok(model.nodes['container:root'] && model.nodes['container:lib'], 'a container node per directory')
+  assert.equal(model.nodes['container:lib'].type, 'container')
+  assert.ok(model.nodes['container:lib'].data.links?.length, 'container has a source link (validate requires it)')
+  assert.ok(model.nodes['container:lib'].data.doc, 'container has a doc ref (validate requires it)')
+  // cross-dir module import (cli@root -> dag@lib) aggregates to a container edge
+  assert.ok(model.edges['imports:container:root->container:lib'], 'cross-dir imports aggregate into a container edge')
+  // views: Containers (level 2), Components (all modules), per-dir drill-downs
+  const ids = model.views.map((v) => v.id)
+  assert.ok(ids.includes('containers') && ids.includes('components'), 'has Containers + Components views')
+  assert.ok(ids.includes('components:lib') && ids.includes('components:root'), 'has per-directory drill-down views')
+  const containers = model.views.find((v) => v.id === 'containers')!
+  assert.deepEqual(containers.nodeIds.sort(), ['container:lib', 'container:root'], 'Containers view holds only container nodes')
+  assert.equal(model.views.find((v) => v.id === 'components')!.nodeIds.length, 2, 'Components view still holds the 2 modules only')
+})
+
+test('buildModel: a single-directory repo stays single-view (no synthetic ladder)', () => {
+  const recon = emptyManifest()
+  recon.nodes['module:tools/factory/a.mjs'] = { id: 'module:tools/factory/a.mjs', type: 'component', origin: 'machine', data: { label: 'a.mjs', metadata: { path: 'tools/factory/a.mjs' } } }
+  const model = buildModel(recon, OPTS)
+  assert.deepEqual(model.views.map((v) => v.id), ['components'], 'only the Components view; no Containers for a flat repo')
+  assert.equal(Object.values(model.nodes).filter((n) => n.type === 'container').length, 0, 'no synthetic container nodes')
+})
+
 // ---- buildSite ----
 test('buildSite: produces the four sections with a changelog and search enabled', () => {
   const site = buildSite(buildModel(reconFixture(), OPTS))

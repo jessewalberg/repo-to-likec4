@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "home": "view:components",
+  "home": "view:containers",
   "search": {
     "enabled": true,
     "index": [
@@ -47,10 +47,35 @@
       "icon": "map",
       "children": [
         {
+          "id": "view:containers",
+          "kind": "view",
+          "label": "Containers",
+          "viewId": "containers"
+        },
+        {
           "id": "view:components",
           "kind": "view",
           "label": "Components",
           "viewId": "components"
+        },
+        {
+          "id": "arch:by-area",
+          "kind": "group",
+          "label": "Components by area",
+          "children": [
+            {
+              "id": "view:components:lib",
+              "kind": "view",
+              "label": "lib",
+              "viewId": "components:lib"
+            },
+            {
+              "id": "view:components:root",
+              "kind": "view",
+              "label": "Root",
+              "viewId": "components:root"
+            }
+          ]
         }
       ]
     },
