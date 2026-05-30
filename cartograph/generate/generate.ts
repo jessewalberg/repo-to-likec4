@@ -12,6 +12,7 @@ import { claudeCliAvailable, cliRefiner } from './refine-cli.ts'
 import { refineModel } from './refine.ts'
 import type { Manifest, MergeReport } from './schema.ts'
 import { buildSite } from './site.ts'
+import { buildTours } from './tours.ts'
 import { validate } from './validate.ts'
 
 // CLI: recon a repo (or a subdir) -> architecture.json + site.json.
@@ -95,11 +96,13 @@ const prevLog: Changelog = existsSync(changelogPath)
 const changelog = report ? appendChangelog(prevLog, report, { ref, timestamp: new Date().toISOString() }) : prevLog
 
 const site = buildSite(model)
+const tours = buildTours(model)
 const result = validate(model)
 
 mkdirSync(out, { recursive: true })
 writeFileSync(archPath, `${JSON.stringify(model, null, 2)}\n`)
 writeFileSync(join(out, 'site.json'), `${JSON.stringify(site, null, 2)}\n`)
+writeFileSync(join(out, 'tours.json'), `${JSON.stringify(tours, null, 2)}\n`)
 writeFileSync(changelogPath, `${JSON.stringify(changelog, null, 2)}\n`)
 for (const [docRef, content] of Object.entries(pages)) {
   const p = join(out, docRef)
