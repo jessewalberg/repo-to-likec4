@@ -142,21 +142,22 @@ function NavNode({
         data-zone={isLibFolder ? "b" : undefined}
       >
         <Collapsible defaultOpen={depth === 0} className="carto-nav__branch">
-          <div
-            className="carto-nav__rail"
-            style={{ paddingLeft: indent }}
+          {/* The <summary> MUST be the direct child of <details>, or the browser
+              ignores it and shows its own "Details" marker. So the rail (indent +
+              zone tint) folds onto the trigger itself rather than wrapping it. */}
+          <CollapsibleTrigger
+            className="carto-nav__rail carto-nav__row carto-nav__trigger"
+            style={{ paddingLeft: indent + 6 }}
             data-zone-tint={isLibFolder ? "b" : undefined}
           >
-            <CollapsibleTrigger className="carto-nav__row carto-nav__trigger">
-              <span className="carto-nav__chevron" aria-hidden="true">
-                <ChevronRight size={12} strokeWidth={2.25} />
-              </span>
-              <span className="carto-nav__glyph" aria-hidden="true">
-                <Glyph size={14} strokeWidth={2} />
-              </span>
-              <span className="carto-nav__label">{entry.label}</span>
-            </CollapsibleTrigger>
-          </div>
+            <span className="carto-nav__chevron" aria-hidden="true">
+              <ChevronRight size={12} strokeWidth={2.25} />
+            </span>
+            <span className="carto-nav__glyph" aria-hidden="true">
+              <Glyph size={14} strokeWidth={2} />
+            </span>
+            <span className="carto-nav__label">{entry.label}</span>
+          </CollapsibleTrigger>
 
           <CollapsibleContent>
             {canRecurse ? (

@@ -852,7 +852,7 @@
   color: var(--text-subtle);
   transition: transform 120ms ease;
 }
-.carto-nav__branch[open] > .carto-nav__rail > .carto-nav__trigger .carto-nav__chevron {
+.carto-nav__branch[open] > .carto-nav__trigger .carto-nav__chevron {
   transform: rotate(90deg);
 }
 
