@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { buildModel } from './model.ts'
 import { layoutAll } from './layout.ts'
+import { detectLikeC4Artifacts, formatMigrationNotice, removeLikeC4Artifacts } from './migrate.ts'
 import { reconModuleGraph } from './recon.ts'
 import { buildSite } from './site.ts'
 import { validate } from './validate.ts'
@@ -16,6 +17,7 @@ function arg(name: string, def?: string): string | undefined {
 }
 
 const repo = arg('repo')
+const migrate = process.argv.includes('--migrate')
 const scan = arg('scan', '')!
 const out = arg('out', 'out')!
 const ref = arg('ref', 'main')!
@@ -61,3 +63,16 @@ if (!result.ok) {
   process.exit(2)
 }
 console.log(`wrote ${join(out, 'architecture.json')} + site.json`)
+
+// Surface (and on --migrate, remove) dead artifacts from a prior LikeC4 mapping
+// so a re-mapped repo never carries two architecture systems side by side.
+const stale = detectLikeC4Artifacts(repo)
+if (stale.removable.length || stale.manual.length) {
+  if (migrate) {
+    removeLikeC4Artifacts(repo, stale)
+    console.log(`migrate: removed ${stale.removable.join(', ') || 'nothing'}`)
+    if (stale.manual.length) console.log(`migrate: left shared file(s) for you to edit: ${stale.manual.join(', ')}`)
+  } else {
+    console.log(formatMigrationNotice(stale))
+  }
+}
