@@ -9,9 +9,15 @@ const EMPTY_CHANGELOG: Changelog = { schemaVersion: 1, entries: [] }
  */
 export async function loadData(): Promise<CartographData> {
   const island = typeof document !== 'undefined' ? document.getElementById('cartograph-data') : null
-  if (island?.textContent) {
-    const parsed = JSON.parse(island.textContent) as Partial<CartographData>
-    return normalize(parsed)
+  const text = island?.textContent?.trim()
+  // A non-empty island that parses = the injected data. An un-injected template
+  // (placeholder) or malformed text falls through to the dev fetch fallback.
+  if (text && text.startsWith('{')) {
+    try {
+      return normalize(JSON.parse(text) as Partial<CartographData>)
+    } catch {
+      /* fall through to fetch */
+    }
   }
 
   // DEV fallback: files served from /public at the root.

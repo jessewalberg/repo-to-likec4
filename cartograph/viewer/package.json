@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:template": "tsc --noEmit && CARTO_TEMPLATE=1 vite build --outDir dist-template --emptyOutDir",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "node --test 'src/**/*.test.ts'"
