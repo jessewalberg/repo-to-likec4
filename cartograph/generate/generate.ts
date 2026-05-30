@@ -8,6 +8,8 @@ import { mergeManifest } from './merge.ts'
 import { detectLikeC4Artifacts, formatMigrationNotice, removeLikeC4Artifacts } from './migrate.ts'
 import { detectRenames } from './rename-detect.ts'
 import { reconModuleGraph } from './recon.ts'
+import { claudeCliAvailable, cliRefiner } from './refine-cli.ts'
+import { refineModel } from './refine.ts'
 import type { Manifest, MergeReport } from './schema.ts'
 import { buildSite } from './site.ts'
 import { validate } from './validate.ts'
@@ -22,6 +24,7 @@ function arg(name: string, def?: string): string | undefined {
 
 const repo = arg('repo')
 const migrate = process.argv.includes('--migrate')
+const refine = process.argv.includes('--refine')
 const scan = arg('scan', '')!
 const out = arg('out', 'out')!
 const ref = arg('ref', 'main')!
@@ -71,6 +74,21 @@ if (existsSync(archPath)) {
   await layoutAll(model) // elkjs once -> bake positions into each view
 }
 
+// view-refine (opt-in): Haiku (via the `claude` CLI) authors each node's summary +
+// its pages/**.md doc page FROM THE MANIFEST. Prose is machine-provenance, so the
+// merge protects any human edits on the next run. Uses your existing Claude auth.
+let pages: Record<string, string> = {}
+if (refine) {
+  if (!claudeCliAvailable()) {
+    console.error('--refine needs the `claude` CLI on PATH (it authors node prose + doc pages with your Claude auth). Install Claude Code and retry.')
+    process.exit(1)
+  }
+  const refined = await refineModel(model, cliRefiner())
+  model = refined.manifest
+  pages = refined.pages
+  console.log(`refine: authored ${Object.keys(pages).length} doc page(s) + node summaries`)
+}
+
 const prevLog: Changelog = existsSync(changelogPath)
   ? (JSON.parse(readFileSync(changelogPath, 'utf8')) as Changelog)
   : emptyChangelog()
@@ -83,6 +101,11 @@ mkdirSync(out, { recursive: true })
 writeFileSync(archPath, `${JSON.stringify(model, null, 2)}\n`)
 writeFileSync(join(out, 'site.json'), `${JSON.stringify(site, null, 2)}\n`)
 writeFileSync(changelogPath, `${JSON.stringify(changelog, null, 2)}\n`)
+for (const [docRef, content] of Object.entries(pages)) {
+  const p = join(out, docRef)
+  mkdirSync(join(p, '..'), { recursive: true })
+  writeFileSync(p, content)
+}
 
 console.log(
   `recon: ${Object.keys(model.nodes).length} nodes, ${Object.keys(model.edges).length} edges, ${Object.keys(model.groups).length} lanes, ${model.views.length} view(s)`,
