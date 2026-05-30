@@ -30,7 +30,7 @@ The skill has pivoted twice (LikeC4 → Mermaid, both 2026-05-29). Diagram-as-co
 
 ## Chosen approach
 
-See the research report for the full data model, extraction stack, layout policy, merge algorithm, packaging, pipeline, and phased plan. Headline commitments: stable `<kind>:<canonical-path>` node IDs + `idAliases`; positions stored **per-view**; explicit node `width`/`height` (ELK can't measure); `@xyflow/react/dist/base.css` with owned `--xy-*` tokens; OKLCH dark-first design system; `codegraph` MCP for on-demand call-graph drill-down.
+See the research report for the full data model, extraction stack, layout policy, merge algorithm, packaging, pipeline, and phased plan. Headline commitments: stable `<kind>:<canonical-path>` node IDs + `idAliases`; positions stored **per-view**; explicit node `width`/`height` (ELK can't measure); `@xyflow/react/dist/base.css` with owned `--xy-*` tokens; OKLCH **light-first** design system (maintainer override — see Phase-1 build note below); `codegraph` MCP for on-demand call-graph drill-down.
 
 ## Tradeoffs
 
