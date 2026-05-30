@@ -1,10 +1,13 @@
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { type Changelog, appendChangelog, emptyChangelog } from './changelog.ts'
 import { buildModel } from './model.ts'
-import { layoutAll } from './layout.ts'
+import { layoutAll, layoutNew } from './layout.ts'
+import { mergeManifest } from './merge.ts'
 import { detectLikeC4Artifacts, formatMigrationNotice, removeLikeC4Artifacts } from './migrate.ts'
 import { reconModuleGraph } from './recon.ts'
+import type { Manifest, MergeReport } from './schema.ts'
 import { buildSite } from './site.ts'
 import { validate } from './validate.ts'
 
@@ -45,24 +48,52 @@ const scanRoot = scan ? join(repo, scan) : repo
 const idPrefix = scan || (name.split('/').pop() ?? 'repo')
 
 const recon = reconModuleGraph(scanRoot, { idPrefix })
-const model = buildModel(recon, { repo: name, blobBase, idPrefix })
-await layoutAll(model) // elkjs once -> bake positions into each view
+const fresh = buildModel(recon, { repo: name, blobBase, idPrefix })
+
+// First run: lay out the whole thing. Re-run over an existing manifest: three-way
+// merge so human edits survive, then place only the new nodes (positions frozen).
+const archPath = join(out, 'architecture.json')
+const changelogPath = join(out, 'changelog.json')
+let model: Manifest
+let report: MergeReport | undefined
+if (existsSync(archPath)) {
+  const current = JSON.parse(readFileSync(archPath, 'utf8')) as Manifest
+  const merged = mergeManifest(current, fresh, current)
+  model = merged.manifest
+  report = merged.report
+  layoutNew(model, merged.nodesNeedingLayout)
+} else {
+  model = fresh
+  await layoutAll(model) // elkjs once -> bake positions into each view
+}
+
+const prevLog: Changelog = existsSync(changelogPath)
+  ? (JSON.parse(readFileSync(changelogPath, 'utf8')) as Changelog)
+  : emptyChangelog()
+const changelog = report ? appendChangelog(prevLog, report, { ref, timestamp: new Date().toISOString() }) : prevLog
+
 const site = buildSite(model)
 const result = validate(model)
 
 mkdirSync(out, { recursive: true })
-writeFileSync(join(out, 'architecture.json'), `${JSON.stringify(model, null, 2)}\n`)
+writeFileSync(archPath, `${JSON.stringify(model, null, 2)}\n`)
 writeFileSync(join(out, 'site.json'), `${JSON.stringify(site, null, 2)}\n`)
+writeFileSync(changelogPath, `${JSON.stringify(changelog, null, 2)}\n`)
 
 console.log(
   `recon: ${Object.keys(model.nodes).length} nodes, ${Object.keys(model.edges).length} edges, ${Object.keys(model.groups).length} lanes, ${model.views.length} view(s)`,
 )
+if (report) {
+  console.log(
+    `merge: +${report.added.length} added, ${report.mutedRemoved.length} muted, ${report.migrated.length} migrated, ${report.suppressedSkipped.length} suppressed`,
+  )
+}
 console.log(`validate: ${result.ok ? 'OK' : 'FAILED'}`)
 if (!result.ok) {
   for (const e of result.errors) console.error(`  - ${e}`)
   process.exit(2)
 }
-console.log(`wrote ${join(out, 'architecture.json')} + site.json`)
+console.log(`wrote ${archPath} + site.json + changelog.json`)
 
 // Surface (and on --migrate, remove) dead artifacts from a prior LikeC4 mapping
 // so a re-mapped repo never carries two architecture systems side by side.
