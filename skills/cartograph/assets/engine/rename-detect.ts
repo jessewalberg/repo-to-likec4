@@ -55,7 +55,10 @@ export function detectRenamesDetailed(t0: Manifest, t1: Manifest, threshold = 0.
       const score = j + (stemMatch ? 0.5 : 0)
       if (!best || score > best.score) best = { from: d, to: a, score, stemMatch, neighborhoodJaccard: j }
     }
-    if (best && best.score >= threshold) {
+    // Require structural corroboration: a bare filename-stem match with ZERO
+    // edge-neighborhood overlap (common stems like index.ts / __init__.py) must
+    // NOT alias — that's the "edits migrate onto the wrong file" false positive.
+    if (best && best.score >= threshold && best.neighborhoodJaccard > 0) {
       matches.push(best)
       usedNew.add(best.to)
     }

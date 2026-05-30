@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { type Refiner, applyRefinements, buildRefineRequests, refineModel, renderPage } from './refine.ts'
+import { type Refiner, applyRefinements, buildRefineRequests, pageIsHumanOwned, refineModel, renderPage } from './refine.ts'
 import { type Manifest, emptyManifest } from './schema.ts'
 
 function model(): Manifest {
@@ -46,6 +46,18 @@ test('applyRefinements: never clobbers a human-owned summary', () => {
   m.nodes.cli.data.provenance = { summary: 'human' }
   const { manifest } = applyRefinements(m, [{ nodeId: 'cli', summary: 'robot', description: 'x' }])
   assert.equal(manifest.nodes.cli.data.summary, 'mine', 'human summary preserved')
+})
+
+test('applyRefinements: tags the summary provenance machine (so a later human edit can flip it)', () => {
+  const { manifest } = applyRefinements(model(), [{ nodeId: 'cli', summary: 's', description: 'd' }])
+  assert.equal(manifest.nodes.cli.data.provenance?.summary, 'machine')
+})
+
+test('pageIsHumanOwned: true for provenance:human or pinned:true frontmatter; false otherwise', () => {
+  assert.equal(pageIsHumanOwned('---\nnode: x\nprovenance: human\n---\nbody'), true)
+  assert.equal(pageIsHumanOwned('---\nnode: x\npinned: true\n---\nbody'), true)
+  assert.equal(pageIsHumanOwned('---\nnode: x\nprovenance: machine\npinned: false\n---\nbody'), false)
+  assert.equal(pageIsHumanOwned('# no frontmatter'), false)
 })
 
 test('renderPage: adds an H1 only when the body lacks one', () => {

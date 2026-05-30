@@ -67,6 +67,28 @@ test('recon Go: module-relative imports link to the target package files (confid
   }
 })
 
+test('recon: empty idPrefix (whole-repo) -> root-relative ids + paths (no phantom segment)', () => {
+  const root = repo({ 'src/a.ts': "import './b'", 'src/b.ts': 'export const b=1' })
+  try {
+    const m = reconModuleGraph(root, { idPrefix: '' })
+    assert.ok(m.nodes['module:src/a.ts'], 'id is module:<repo-relative>, no prefix segment')
+    assert.equal(m.nodes['module:src/a.ts'].data.metadata?.path, 'src/a.ts', 'path is repo-root-relative')
+    assert.ok(m.edges['imports:module:src/a.ts->module:src/b.ts'], 'edge resolves with empty prefix')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('recon Python: `from . import b` links to the sibling submodule, not the package init', () => {
+  const root = repo({ 'pkg/__init__.py': '', 'pkg/a.py': 'from . import b\n', 'pkg/b.py': 'x=1' })
+  try {
+    const m = reconModuleGraph(root, { idPrefix: 'r' })
+    assert.ok(hasEdge(m, 'pkg/a.py', 'pkg/b.py'), 'from . import b -> pkg/b.py (the submodule)')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
 test('recon Ruby: require_relative resolves to the sibling .rb', () => {
   const root = repo({ 'a.rb': "require_relative './b'", 'b.rb': '# b' })
   try {

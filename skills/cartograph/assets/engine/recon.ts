@@ -20,7 +20,12 @@ function walk(root: string, exts: string[]): string[] {
   for (const name of readdirSync(root)) {
     if (name === 'node_modules' || name === 'vendor' || name.startsWith('.')) continue
     const abs = join(root, name)
-    const st = statSync(abs)
+    let st: ReturnType<typeof statSync>
+    try {
+      st = statSync(abs) // follows symlinks; a dangling/odd link throws -> skip it
+    } catch {
+      continue
+    }
     if (st.isDirectory()) out.push(...walk(abs, exts))
     else if (exts.some((e) => name.endsWith(e))) out.push(abs)
   }
@@ -67,32 +72,46 @@ function resolveJs(content: string, fromRel: string, ctx: ResolveCtx): ResolvedE
   return out
 }
 
-// ---- Python: `import a.b` / `from a.b import x` / relative `from .x import`. ----
-const PY_RE = /^[ \t]*(?:from[ \t]+(\.*)([\w.]*)[ \t]+import\b|import[ \t]+([\w.]+))/gm
+// ---- Python: `import a.b` / `from a.b import x` / relative `from . import b`. ----
+const PY_RE = /^[ \t]*(?:from[ \t]+(\.*)([\w.]*)[ \t]+import[ \t]+([^\n#]+)|import[ \t]+([\w.]+))/gm
 function resolvePy(content: string, fromRel: string, ctx: ResolveCtx): ResolvedEdge[] {
   const out: ResolvedEdge[] = []
   const fromDir = dirname(fromRel) // posix, scan-relative
-  PY_RE.lastIndex = 0
-  let m: RegExpExecArray | null
-  while ((m = PY_RE.exec(content)) !== null) {
-    const dots = m[1] ?? '' // leading dots for `from . import`
-    const fromPath = m[2] ?? '' // module path in a `from` (may be empty for `from . import x`)
-    const importPath = m[3] // module path in a bare `import a.b`
-    const dotted = importPath ?? fromPath
-    let baseDir = ''
-    if (dots) {
-      // relative: each dot beyond the first climbs a directory.
-      let dir = fromDir === '.' ? '' : fromDir
-      for (let i = 1; i < dots.length; i++) dir = dirname(dir === '' ? '.' : dir)
-      baseDir = dir === '.' ? '' : dir
-    }
-    const segs = dotted ? dotted.split('.').filter(Boolean) : []
-    const relNoExt = [baseDir, ...segs].filter(Boolean).join('/')
-    if (!relNoExt) continue
+  const add = (relNoExt: string) => {
+    if (!relNoExt) return
     for (const cand of [`${relNoExt}.py`, `${relNoExt}/__init__.py`]) {
       if (ctx.fileSet.has(toPosix(cand))) {
         out.push({ targetRel: toPosix(cand), confidence: 'inferred' })
-        break
+        return
+      }
+    }
+  }
+  const baseFromDots = (dots: string): string => {
+    if (!dots) return ''
+    let dir = fromDir === '.' ? '' : fromDir
+    for (let i = 1; i < dots.length; i++) dir = dirname(dir === '' ? '.' : dir)
+    return dir === '.' ? '' : dir
+  }
+  PY_RE.lastIndex = 0
+  let m: RegExpExecArray | null
+  while ((m = PY_RE.exec(content)) !== null) {
+    const importPath = m[4] // bare `import a.b`
+    if (importPath) {
+      add(importPath.split('.').filter(Boolean).join('/'))
+      continue
+    }
+    const dots = m[1] ?? '' // leading dots for relative `from`
+    const fromPath = m[2] ?? '' // module path in a `from` (empty for `from . import x`)
+    const names = m[3] ?? '' // imported names after `import`
+    const baseDir = baseFromDots(dots)
+    if (fromPath) {
+      // `from pkg.mod import x` / `from .mod import x` -> the module itself.
+      add([baseDir, ...fromPath.split('.').filter(Boolean)].filter(Boolean).join('/'))
+    } else if (dots) {
+      // `from . import b, c` -> each name is a sibling submodule.
+      for (const raw of names.split(',')) {
+        const name = raw.trim().split(/\s+as\s+/)[0].trim()
+        if (/^[\w]+$/.test(name)) add([baseDir, name].filter(Boolean).join('/'))
       }
     }
   }
@@ -179,7 +198,11 @@ export function reconModuleGraph(scanRoot: string, opts: ReconOptions): Manifest
   const absFiles = walk(scanRoot, exts)
   const relFiles = absFiles.map((f) => toPosix(relative(scanRoot, f)))
   const fileSet = new Set(relFiles)
-  const idOf = (rel: string) => `module:${opts.idPrefix}/${toPosix(rel)}`
+  // Empty idPrefix (whole-repo scan) -> ids/paths are repo-root-relative, so Source
+  // links don't get a phantom directory segment. With a --scan subdir, prefix it.
+  const prefix = opts.idPrefix
+  const idOf = (rel: string) => (prefix ? `module:${prefix}/${toPosix(rel)}` : `module:${toPosix(rel)}`)
+  const pathOf = (rel: string) => (prefix ? `${prefix}/${rel}` : rel)
   const ctx: ResolveCtx = { scanRoot, fileSet, goModule: relFiles.some((f) => f.endsWith('.go')) ? readGoModule(scanRoot) : null }
 
   const manifest = emptyManifest()
@@ -192,7 +215,7 @@ export function reconModuleGraph(scanRoot: string, opts: ReconOptions): Manifest
       origin: 'machine',
       data: {
         label: rel.split('/').pop()!,
-        metadata: { path: `${opts.idPrefix}/${rel}` },
+        metadata: { path: pathOf(rel) },
         provenance: {},
         confidence: 'static',
       },

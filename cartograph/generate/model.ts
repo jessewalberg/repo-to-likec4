@@ -87,7 +87,9 @@ export function buildModel(recon: Manifest, opts: ModelOptions): Manifest {
     const containerIds: string[] = []
     for (const dir of dirs) {
       const cid = `container:${dir}`
-      const dpath = dir === 'root' ? opts.idPrefix : `${opts.idPrefix}/${dir}`
+      // Repo-relative directory path; empty idPrefix (whole-repo) keeps it clean.
+      const base = opts.idPrefix
+      const dpath = dir === 'root' ? base : base ? `${base}/${dir}` : dir
       const moduleCount = moduleIds.filter((id) => dirOf[id] === dir).length
       nodes[cid] = {
         id: cid,

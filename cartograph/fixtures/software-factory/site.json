@@ -26,13 +26,6 @@
           "provenance": "machine"
         },
         {
-          "id": "getting-started",
-          "kind": "page",
-          "label": "Getting started",
-          "page": "pages/getting-started.md",
-          "provenance": "machine"
-        },
-        {
           "id": "changelog",
           "kind": "changelog",
           "label": "What changed",

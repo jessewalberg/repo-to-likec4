@@ -33,15 +33,12 @@ export function TourPlayer({ tour, onFocus, onExit }: TourPlayerProps): React.Re
   const step = tour.steps[i]
   const last = i >= tour.steps.length - 1
   const prev = useCallback(() => setI((x) => Math.max(0, x - 1)), [])
+  // Decide finish OUTSIDE the updater — state updaters must be pure (StrictMode
+  // double-invokes them), and onExit triggers a parent setState.
   const next = useCallback(() => {
-    setI((x) => {
-      if (x >= tour.steps.length - 1) {
-        onExit()
-        return x
-      }
-      return x + 1
-    })
-  }, [tour, onExit])
+    if (last) onExit()
+    else setI((x) => Math.min(tour.steps.length - 1, x + 1))
+  }, [last, onExit, tour.steps.length])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

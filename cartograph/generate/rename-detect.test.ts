@@ -35,6 +35,13 @@ test('detectRenames: a vanished human-authored node is never aliased', () => {
   assert.deepEqual(detectRenames(t0, t1), {}, 'human node disappearance is not a rename')
 })
 
+test('detectRenames: a bare stem match with ZERO neighborhood overlap is NOT aliased', () => {
+  // a/index.ts deleted, b/index.ts added — same stem, no shared neighbors.
+  const t0 = man(['module:a/index.ts', 'x'], [['x', 'module:a/index.ts']])
+  const t1 = man(['module:b/index.ts', 'x', 'y'], [['y', 'module:b/index.ts']])
+  assert.deepEqual(detectRenames(t0, t1), {}, 'stem-only, no structural corroboration -> no false alias')
+})
+
 test('detectRenames: no change -> no aliases', () => {
   const t0 = man(['a', 'b'], [['a', 'b']])
   assert.deepEqual(detectRenames(t0, t0), {})

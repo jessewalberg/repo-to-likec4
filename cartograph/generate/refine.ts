@@ -71,11 +71,14 @@ export function applyRefinements(manifest: Manifest, refinements: Refinement[]):
     if (!n) continue
     // Don't clobber a human-owned summary (defence in depth; builder already skips).
     const summaryIsHuman = n.data.provenance?.summary === 'human'
+    const provenance = { ...(n.data.provenance ?? {}) }
+    if (!summaryIsHuman) provenance.summary = 'machine' // mark LLM-authored so a later human edit can flip it
     nodes[r.nodeId] = {
       ...n,
       data: {
         ...n.data,
         summary: summaryIsHuman ? n.data.summary : r.summary,
+        provenance,
       },
     }
     const docRef = n.data.doc
@@ -85,6 +88,14 @@ export function applyRefinements(manifest: Manifest, refinements: Refinement[]):
   }
 
   return { manifest: { ...manifest, nodes }, pages }
+}
+
+/** True if an existing doc page is human-owned (frontmatter provenance:human or
+ * pinned:true) and must NOT be overwritten by a refine run. */
+export function pageIsHumanOwned(content: string): boolean {
+  const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/)
+  if (!m) return false
+  return /^\s*provenance\s*:\s*human\s*$/im.test(m[1]) || /^\s*pinned\s*:\s*true\s*$/im.test(m[1])
 }
 
 /** A doc page: machine-provenance frontmatter + the authored body. */

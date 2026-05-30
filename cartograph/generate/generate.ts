@@ -9,9 +9,9 @@ import { detectLikeC4Artifacts, formatMigrationNotice, removeLikeC4Artifacts } f
 import { detectRenames } from './rename-detect.ts'
 import { reconModuleGraph } from './recon.ts'
 import { claudeCliAvailable, cliRefiner } from './refine-cli.ts'
-import { refineModel } from './refine.ts'
+import { pageIsHumanOwned, refineModel } from './refine.ts'
 import type { Manifest, MergeReport } from './schema.ts'
-import { buildSite } from './site.ts'
+import { buildOverview, buildSite } from './site.ts'
 import { buildTours } from './tours.ts'
 import { validate } from './validate.ts'
 
@@ -50,7 +50,9 @@ name = name ?? 'local/repo'
 blobBase = blobBase ?? `https://github.com/${name}/blob/${ref}`
 
 const scanRoot = scan ? join(repo, scan) : repo
-const idPrefix = scan || (name.split('/').pop() ?? 'repo')
+// idPrefix is the --scan subdir, or '' for a whole-repo scan so node paths +
+// Source links stay repo-root-relative (no phantom directory segment).
+const idPrefix = scan
 
 const recon = reconModuleGraph(scanRoot, { idPrefix })
 const fresh = buildModel(recon, { repo: name, blobBase, idPrefix })
@@ -104,8 +106,12 @@ writeFileSync(archPath, `${JSON.stringify(model, null, 2)}\n`)
 writeFileSync(join(out, 'site.json'), `${JSON.stringify(site, null, 2)}\n`)
 writeFileSync(join(out, 'tours.json'), `${JSON.stringify(tours, null, 2)}\n`)
 writeFileSync(changelogPath, `${JSON.stringify(changelog, null, 2)}\n`)
-for (const [docRef, content] of Object.entries(pages)) {
+// A deterministic Overview page always exists (the Documentation landing).
+const allPages: Record<string, string> = { 'pages/overview.md': buildOverview(model), ...pages }
+for (const [docRef, content] of Object.entries(allPages)) {
   const p = join(out, docRef)
+  // Never overwrite a human-owned doc page (frontmatter provenance:human / pinned:true).
+  if (existsSync(p) && pageIsHumanOwned(readFileSync(p, 'utf8'))) continue
   mkdirSync(join(p, '..'), { recursive: true })
   writeFileSync(p, content)
 }

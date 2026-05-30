@@ -148,6 +148,11 @@ function mergeNode(cn: ManifestNode, fn: ManifestNode, report: MergeReport): Man
   data.provenance = prov
   if (cn.data.pinned !== undefined) data.pinned = cn.data.pinned
   if (cn.data.annotation !== undefined && prov.annotation === 'human') data.annotation = cn.data.annotation
+  // Prose (summary/description) is LLM-authored, never recon-authored — so carry
+  // the current value forward whenever the fresh recon node lacks one. Otherwise a
+  // plain (non-refine) re-run would silently drop view-refine's summaries/docs.
+  if (fn.data.summary === undefined && cn.data.summary !== undefined) data.summary = cn.data.summary
+  if (fn.data.description === undefined && cn.data.description !== undefined) data.description = cn.data.description
   data.confidence = 'static' // recon sees it now
 
   if (preserved.length) report.humanFieldsPreserved.push({ id: cn.id, fields: preserved })

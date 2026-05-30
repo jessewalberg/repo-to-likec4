@@ -67,10 +67,12 @@ export function manifestToFlow(view: View, manifest: Manifest): FlowGraph {
   const visibleIds = view.nodeIds.filter((id) => !suppressedNodes.has(id))
   const inView = new Set(visibleIds)
 
-  // Degree counts (only edges fully inside the view).
+  // Degree counts (only edges fully in-view and not suppressed — so the card's
+  // import/imported-by counts match the edges actually rendered).
   const outCount = new Map<string, number>()
   const inCount = new Map<string, number>()
   for (const e of Object.values(manifest.edges)) {
+    if (suppressedEdges.has(e.id)) continue
     if (!inView.has(e.source) || !inView.has(e.target)) continue
     outCount.set(e.source, (outCount.get(e.source) ?? 0) + 1)
     inCount.set(e.target, (inCount.get(e.target) ?? 0) + 1)

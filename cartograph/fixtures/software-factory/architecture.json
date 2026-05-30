@@ -385,7 +385,7 @@
       "origin": "machine",
       "data": {
         "label": "lib",
-        "summary": "Library utilities container for factory tool",
+        "summary": "9 modules",
         "metadata": {
           "path": "tools/factory/lib",
           "modules": 9
@@ -409,7 +409,7 @@
       "origin": "machine",
       "data": {
         "label": "Root",
-        "summary": "Factory tool root container — entry point for code generation and recon",
+        "summary": "6 modules",
         "metadata": {
           "path": "tools/factory",
           "modules": 6
@@ -615,12 +615,6 @@
       ],
       "layoutDir": "DOWN",
       "layout": {
-        "lane:root": {
-          "x": 249,
-          "y": 44,
-          "w": 1608,
-          "h": 160
-        },
         "module:tools/factory/child-issues-run.mjs": {
           "x": 292,
           "y": 44
@@ -636,20 +630,6 @@
         "module:tools/factory/epic-coordinator-run.mjs": {
           "x": 24,
           "y": 44
-        },
-        "module:tools/factory/policy-gate-run.mjs": {
-          "x": 828,
-          "y": 44
-        },
-        "module:tools/factory/reconcile-run.mjs": {
-          "x": 1364,
-          "y": 44
-        },
-        "lane:lib": {
-          "x": 24,
-          "y": 324,
-          "w": 1833,
-          "h": 412
         },
         "module:tools/factory/lib/claude-routine.mjs": {
           "x": 544,
@@ -686,6 +666,26 @@
         "module:tools/factory/lib/schema.mjs": {
           "x": 349.33,
           "y": 180
+        },
+        "module:tools/factory/policy-gate-run.mjs": {
+          "x": 828,
+          "y": 44
+        },
+        "module:tools/factory/reconcile-run.mjs": {
+          "x": 1364,
+          "y": 44
+        },
+        "lane:root": {
+          "x": 249,
+          "y": 44,
+          "w": 1608,
+          "h": 160
+        },
+        "lane:lib": {
+          "x": 24,
+          "y": 324,
+          "w": 1833,
+          "h": 412
         }
       }
     },
@@ -706,12 +706,6 @@
       ],
       "layoutDir": "DOWN",
       "layout": {
-        "lane:lib": {
-          "x": 24,
-          "y": 44,
-          "w": 1608,
-          "h": 412
-        },
         "module:tools/factory/lib/claude-routine.mjs": {
           "x": 292,
           "y": 44
@@ -747,6 +741,12 @@
         "module:tools/factory/lib/schema.mjs": {
           "x": 1059.33,
           "y": 180
+        },
+        "lane:lib": {
+          "x": 24,
+          "y": 44,
+          "w": 1608,
+          "h": 412
         }
       }
     },
@@ -764,12 +764,6 @@
       ],
       "layoutDir": "DOWN",
       "layout": {
-        "lane:root": {
-          "x": 24,
-          "y": 44,
-          "w": 1608,
-          "h": 140
-        },
         "module:tools/factory/child-issues-run.mjs": {
           "x": 292,
           "y": 44
@@ -793,6 +787,12 @@
         "module:tools/factory/reconcile-run.mjs": {
           "x": 560,
           "y": 44
+        },
+        "lane:root": {
+          "x": 24,
+          "y": 44,
+          "w": 1608,
+          "h": 140
         }
       }
     }

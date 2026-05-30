@@ -250,6 +250,22 @@ test('F: a human-authored node (origin human) survives recon that never produced
 })
 
 // ===========================================================================
+// Scenario H — LLM-authored prose (summary/description) survives a PLAIN re-run.
+// recon never authors prose, so a fresh node without a summary must not wipe the
+// current machine-authored one (the view-refine output would silently vanish).
+// ===========================================================================
+test('H: machine-authored summary/description survive a non-refine re-run', () => {
+  const base = m({ nodes: nodesMap(node('api')) })
+  const current = m({
+    nodes: nodesMap(node('api', { data: { label: 'api', summary: 'The public API.', description: 'Handles requests.', provenance: { summary: 'machine' } } })),
+  })
+  const fresh = m({ nodes: nodesMap(node('api', { data: { label: 'api', provenance: {} } })) }) // recon: no prose
+  const { manifest } = mergeManifest(base, fresh, current)
+  assert.equal(manifest.nodes.api.data.summary, 'The public API.', 'summary carried forward')
+  assert.equal(manifest.nodes.api.data.description, 'Handles requests.', 'description carried forward')
+})
+
+// ===========================================================================
 // Scenario G — a frozen LANE/container position (a layout key that is not a node
 // id) survives a recon refresh, so grouped views don't lose their lane boxes.
 // ===========================================================================
