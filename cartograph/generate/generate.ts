@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { buildModel } from './model.ts'
+import { layoutAll } from './layout.ts'
 import { reconModuleGraph } from './recon.ts'
 import { buildSite } from './site.ts'
 import { validate } from './validate.ts'
@@ -43,6 +44,7 @@ const idPrefix = scan || (name.split('/').pop() ?? 'repo')
 
 const recon = reconModuleGraph(scanRoot, { idPrefix })
 const model = buildModel(recon, { repo: name, blobBase, idPrefix })
+await layoutAll(model) // elkjs once -> bake positions into each view
 const site = buildSite(model)
 const result = validate(model)
 

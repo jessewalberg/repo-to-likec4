@@ -52,6 +52,9 @@ export interface ManifestEdge {
 export interface ViewLayoutPos {
   x: number
   y: number
+  /** width/height — set on group/lane entries (ELK sizes them to fit); leaves use node.width/height. */
+  w?: number
+  h?: number
 }
 
 export interface View {
