@@ -1,7 +1,16 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { type ElkNode, buildElkGraph, extractPositions, layoutView } from './layout.ts'
-import { type Manifest, emptyManifest } from './schema.ts'
+import { type ElkNode, buildElkGraph, extractPositions, layoutView, placeNewNodes } from './layout.ts'
+import { type Manifest, type View, emptyManifest } from './schema.ts'
+
+const SIZE = () => ({ w: 220, h: 72 })
+
+/** True if two laid-out boxes (id -> pos) overlap, using each box's own w/h or the default size. */
+function boxesOverlap(view: View, a: string, b: string): boolean {
+  const ra = { x: view.layout[a].x, y: view.layout[a].y, w: view.layout[a].w ?? 220, h: view.layout[a].h ?? 72 }
+  const rb = { x: view.layout[b].x, y: view.layout[b].y, w: view.layout[b].w ?? 220, h: view.layout[b].h ?? 72 }
+  return ra.x < rb.x + rb.w && ra.x + ra.w > rb.x && ra.y < rb.y + rb.h && ra.y + ra.h > rb.y
+}
 
 // ---- extractPositions (pure) ----
 test('extractPositions: lanes get root-relative x/y/w/h; children get lane-local x/y', () => {
@@ -64,4 +73,34 @@ test('layoutView: real ELK produces finite positions; lane is sized to fit its c
   }
   const lane = view.layout['lane:backend']
   assert.ok((lane.w ?? 0) >= 220 && (lane.h ?? 0) >= 144, 'lane sized to contain two stacked 220x72 nodes')
+})
+
+// ---- placeNewNodes (incremental freeze: pin existing, place only new) ----
+test('placeNewNodes: existing positions are frozen; new nodes get finite, non-overlapping slots', () => {
+  const view: View = {
+    id: 'v',
+    title: 'V',
+    nodeIds: ['keep1', 'keep2', 'new1', 'new2', 'new3'],
+    layout: { keep1: { x: 0, y: 0 }, keep2: { x: 300, y: 0 } }, // human-frozen
+  }
+  placeNewNodes(view, ['new1', 'new2', 'new3'], SIZE)
+
+  assert.deepEqual(view.layout.keep1, { x: 0, y: 0 }, 'existing position untouched')
+  assert.deepEqual(view.layout.keep2, { x: 300, y: 0 }, 'existing position untouched')
+
+  const ids = ['keep1', 'keep2', 'new1', 'new2', 'new3']
+  for (const id of ['new1', 'new2', 'new3']) {
+    assert.ok(view.layout[id], `${id} placed`)
+    assert.ok(Number.isFinite(view.layout[id].x) && Number.isFinite(view.layout[id].y), `${id} finite`)
+  }
+  for (let i = 0; i < ids.length; i++)
+    for (let j = i + 1; j < ids.length; j++)
+      assert.ok(!boxesOverlap(view, ids[i], ids[j]), `${ids[i]} and ${ids[j]} must not overlap`)
+})
+
+test('placeNewNodes: works on an empty view (first-ever layout of all-new nodes)', () => {
+  const view: View = { id: 'v', title: 'V', nodeIds: ['a', 'b'], layout: {} }
+  placeNewNodes(view, ['a', 'b'], SIZE)
+  assert.ok(view.layout.a && view.layout.b, 'both placed')
+  assert.ok(!boxesOverlap(view, 'a', 'b'), 'no overlap with no existing anchors')
 })
