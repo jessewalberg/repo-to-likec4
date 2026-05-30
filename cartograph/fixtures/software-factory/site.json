@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "home": "view:components",
+  "search": {
+    "enabled": true,
+    "index": [
+      "nodes",
+      "edges",
+      "pages",
+      "tours"
+    ]
+  },
+  "sidebar": [
+    {
+      "id": "documentation",
+      "kind": "section",
+      "label": "Documentation",
+      "icon": "book",
+      "provenance": "machine",
+      "children": [
+        {
+          "id": "overview",
+          "kind": "page",
+          "label": "Overview",
+          "page": "pages/overview.md",
+          "provenance": "machine"
+        },
+        {
+          "id": "getting-started",
+          "kind": "page",
+          "label": "Getting started",
+          "page": "pages/getting-started.md",
+          "provenance": "machine"
+        },
+        {
+          "id": "changelog",
+          "kind": "changelog",
+          "label": "What changed",
+          "feed": "changelog.json"
+        }
+      ]
+    },
+    {
+      "id": "architecture",
+      "kind": "section",
+      "label": "Architecture",
+      "icon": "map",
+      "children": [
+        {
+          "id": "view:components",
+          "kind": "view",
+          "label": "Components",
+          "viewId": "components"
+        }
+      ]
+    },
+    {
+      "id": "modules",
+      "kind": "tree",
+      "label": "Modules",
+      "icon": "folder-tree",
+      "source": "auto:node-docs",
+      "children": [
+        {
+          "id": "dir:tools",
+          "kind": "tree",
+          "label": "tools",
+          "children": [
+            {
+              "id": "dir:tools/factory",
+              "kind": "tree",
+              "label": "factory",
+              "children": [
+                {
+                  "id": "page:module:tools/factory/child-issues-run.mjs",
+                  "kind": "page",
+                  "label": "child-issues-run.mjs",
+                  "page": "pages/modules/tools/factory/child-issues-run.md",
+                  "node": "module:tools/factory/child-issues-run.mjs",
+                  "provenance": "machine"
+                },
+                {
+                  "id": "page:module:tools/factory/cli.mjs",
+                  "kind": "page",
+                  "label": "cli.mjs",
+                  "page": "pages/modules/tools/factory/cli.md",
+                  "node": "module:tools/factory/cli.mjs",
+                  "provenance": "machine"
+                },
+                {
+                  "id": "page:module:tools/factory/cursor-scope-run.mjs",
+                  "kind": "page",
+                  "label": "cursor-scope-run.mjs",
+                  "page": "pages/modules/tools/factory/cursor-scope-run.md",
+                  "node": "module:tools/factory/cursor-scope-run.mjs",
+                  "provenance": "machine"
+                },
+                {
+                  "id": "page:module:tools/factory/epic-coordinator-run.mjs",
+                  "kind": "page",
+                  "label": "epic-coordinator-run.mjs",
+                  "page": "pages/modules/tools/factory/epic-coordinator-run.md",
+                  "node": "module:tools/factory/epic-coordinator-run.mjs",
+                  "provenance": "machine"
+                },
+                {
+                  "id": "dir:tools/factory/lib",
+                  "kind": "tree",
+                  "label": "lib",
+                  "children": [
+                    {
+                      "id": "page:module:tools/factory/lib/claude-routine.mjs",
+                      "kind": "page",
+                      "label": "claude-routine.mjs",
+                      "page": "pages/modules/tools/factory/lib/claude-routine.md",
+                      "node": "module:tools/factory/lib/claude-routine.mjs",
+                      "provenance": "machine"
+                    },
+                    {
+                      "id": "page:module:tools/factory/lib/dag.mjs",
+                      "kind": "page",
+                      "label": "dag.mjs",
+                      "page": "pages/modules/tools/factory/lib/dag.md",
+                      "node": "module:tools/factory/lib/dag.mjs",
+                      "provenance": "machine"
+                    },
+                    {
+                      "id": "page:module:tools/factory/lib/diagrams.mjs",
+                      "kind": "page",
+                      "label": "diagrams.mjs",
+                      "page": "pages/modules/tools/factory/lib/diagrams.md",
+                      "node": "module:tools/factory/lib/diagrams.mjs",
+                      "provenance": "machine"
+                    },
+                    {
+                      "id": "page:module:tools/factory/lib/envelope.mjs",
+                      "kind": "page",
+                      "label": "envelope.mjs",
+                      "page": "pages/modules/tools/factory/lib/envelope.md",
+                      "node": "module:tools/factory/lib/envelope.mjs",
+                      "provenance": "machine"
+                    },
+                    {
+                      "id": "page:module:tools/factory/lib/glob.mjs",
+                      "kind": "page",
+                      "label": "glob.mjs",
+                      "page": "pages/modules/tools/factory/lib/glob.md",
+                      "node": "module:tools/factory/lib/glob.mjs",
+                      "provenance": "machine"
+                    },
+                    {
+                      "id": "page:module:tools/factory/lib/metrics.mjs",
+                      "kind": "page",
+                      "label": "metrics.mjs",
+                      "page": "pages/modules/tools/factory/lib/metrics.md",
+                      "node": "module:tools/factory/lib/metrics.mjs",
+                      "provenance": "machine"
+                    },
+                    {
+                      "id": "page:module:tools/factory/lib/policy.mjs",
+                      "kind": "page",
+                      "label": "policy.mjs",
+                      "page": "pages/modules/tools/factory/lib/policy.md",
+                      "node": "module:tools/factory/lib/policy.mjs",
+                      "provenance": "machine"
+                    },
+                    {
+                      "id": "page:module:tools/factory/lib/reconcile.mjs",
+                      "kind": "page",
+                      "label": "reconcile.mjs",
+                      "page": "pages/modules/tools/factory/lib/reconcile.md",
+                      "node": "module:tools/factory/lib/reconcile.mjs",
+                      "provenance": "machine"
+                    },
+                    {
+                      "id": "page:module:tools/factory/lib/schema.mjs",
+                      "kind": "page",
+                      "label": "schema.mjs",
+                      "page": "pages/modules/tools/factory/lib/schema.md",
+                      "node": "module:tools/factory/lib/schema.mjs",
+                      "provenance": "machine"
+                    }
+                  ]
+                },
+                {
+                  "id": "page:module:tools/factory/policy-gate-run.mjs",
+                  "kind": "page",
+                  "label": "policy-gate-run.mjs",
+                  "page": "pages/modules/tools/factory/policy-gate-run.md",
+                  "node": "module:tools/factory/policy-gate-run.mjs",
+                  "provenance": "machine"
+                },
+                {
+                  "id": "page:module:tools/factory/reconcile-run.mjs",
+                  "kind": "page",
+                  "label": "reconcile-run.mjs",
+                  "page": "pages/modules/tools/factory/reconcile-run.md",
+                  "node": "module:tools/factory/reconcile-run.mjs",
+                  "provenance": "machine"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "learning",
+      "kind": "section",
+      "label": "Learning",
+      "icon": "graduation-cap",
+      "children": [
+        {
+          "id": "tour:understand",
+          "kind": "tour",
+          "label": "Understand the system",
+          "tourId": "understand"
+        },
+        {
+          "id": "tour:fix-bug",
+          "kind": "tour",
+          "label": "Fix a bug",
+          "tourId": "fix-bug"
+        },
+        {
+          "id": "tour:add-feature",
+          "kind": "tour",
+          "label": "Add a feature",
+          "tourId": "add-feature"
+        },
+        {
+          "id": "per-node-lessons",
+          "kind": "group",
+          "label": "Per-component lessons",
+          "source": "auto:node-lessons",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

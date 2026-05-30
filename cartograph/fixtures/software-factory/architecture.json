@@ -1,0 +1,525 @@
+{
+  "schemaVersion": 2,
+  "meta": {
+    "repo": "theroomofrequirement/software-factory"
+  },
+  "nodes": {
+    "module:tools/factory/child-issues-run.mjs": {
+      "id": "module:tools/factory/child-issues-run.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "child-issues-run.mjs",
+        "metadata": {
+          "path": "tools/factory/child-issues-run.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/child-issues-run.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/child-issues-run.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:root"
+    },
+    "module:tools/factory/cli.mjs": {
+      "id": "module:tools/factory/cli.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "cli.mjs",
+        "metadata": {
+          "path": "tools/factory/cli.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/cli.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/cli.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:root"
+    },
+    "module:tools/factory/cursor-scope-run.mjs": {
+      "id": "module:tools/factory/cursor-scope-run.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "cursor-scope-run.mjs",
+        "metadata": {
+          "path": "tools/factory/cursor-scope-run.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/cursor-scope-run.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/cursor-scope-run.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:root"
+    },
+    "module:tools/factory/epic-coordinator-run.mjs": {
+      "id": "module:tools/factory/epic-coordinator-run.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "epic-coordinator-run.mjs",
+        "metadata": {
+          "path": "tools/factory/epic-coordinator-run.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/epic-coordinator-run.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/epic-coordinator-run.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:root"
+    },
+    "module:tools/factory/lib/claude-routine.mjs": {
+      "id": "module:tools/factory/lib/claude-routine.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "claude-routine.mjs",
+        "metadata": {
+          "path": "tools/factory/lib/claude-routine.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/claude-routine.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/lib/claude-routine.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:lib"
+    },
+    "module:tools/factory/lib/dag.mjs": {
+      "id": "module:tools/factory/lib/dag.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "dag.mjs",
+        "metadata": {
+          "path": "tools/factory/lib/dag.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/dag.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/lib/dag.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:lib"
+    },
+    "module:tools/factory/lib/diagrams.mjs": {
+      "id": "module:tools/factory/lib/diagrams.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "diagrams.mjs",
+        "metadata": {
+          "path": "tools/factory/lib/diagrams.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/diagrams.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/lib/diagrams.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:lib"
+    },
+    "module:tools/factory/lib/envelope.mjs": {
+      "id": "module:tools/factory/lib/envelope.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "envelope.mjs",
+        "metadata": {
+          "path": "tools/factory/lib/envelope.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/envelope.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/lib/envelope.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:lib"
+    },
+    "module:tools/factory/lib/glob.mjs": {
+      "id": "module:tools/factory/lib/glob.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "glob.mjs",
+        "metadata": {
+          "path": "tools/factory/lib/glob.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/glob.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/lib/glob.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:lib"
+    },
+    "module:tools/factory/lib/metrics.mjs": {
+      "id": "module:tools/factory/lib/metrics.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "metrics.mjs",
+        "metadata": {
+          "path": "tools/factory/lib/metrics.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/metrics.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/lib/metrics.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:lib"
+    },
+    "module:tools/factory/lib/policy.mjs": {
+      "id": "module:tools/factory/lib/policy.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "policy.mjs",
+        "metadata": {
+          "path": "tools/factory/lib/policy.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/policy.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/lib/policy.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:lib"
+    },
+    "module:tools/factory/lib/reconcile.mjs": {
+      "id": "module:tools/factory/lib/reconcile.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "reconcile.mjs",
+        "metadata": {
+          "path": "tools/factory/lib/reconcile.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/reconcile.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/lib/reconcile.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:lib"
+    },
+    "module:tools/factory/lib/schema.mjs": {
+      "id": "module:tools/factory/lib/schema.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "schema.mjs",
+        "metadata": {
+          "path": "tools/factory/lib/schema.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/schema.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/lib/schema.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:lib"
+    },
+    "module:tools/factory/policy-gate-run.mjs": {
+      "id": "module:tools/factory/policy-gate-run.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "policy-gate-run.mjs",
+        "metadata": {
+          "path": "tools/factory/policy-gate-run.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/policy-gate-run.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/policy-gate-run.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:root"
+    },
+    "module:tools/factory/reconcile-run.mjs": {
+      "id": "module:tools/factory/reconcile-run.mjs",
+      "type": "component",
+      "origin": "machine",
+      "data": {
+        "label": "reconcile-run.mjs",
+        "metadata": {
+          "path": "tools/factory/reconcile-run.mjs"
+        },
+        "provenance": {},
+        "confidence": "static",
+        "technology": "JavaScript",
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/reconcile-run.mjs"
+          }
+        ],
+        "doc": "pages/modules/tools/factory/reconcile-run.md"
+      },
+      "width": 220,
+      "height": 72,
+      "parentId": "lane:root"
+    }
+  },
+  "edges": {
+    "imports:module:tools/factory/child-issues-run.mjs->module:tools/factory/lib/dag.mjs": {
+      "id": "imports:module:tools/factory/child-issues-run.mjs->module:tools/factory/lib/dag.mjs",
+      "source": "module:tools/factory/child-issues-run.mjs",
+      "target": "module:tools/factory/lib/dag.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/cli.mjs->module:tools/factory/lib/envelope.mjs": {
+      "id": "imports:module:tools/factory/cli.mjs->module:tools/factory/lib/envelope.mjs",
+      "source": "module:tools/factory/cli.mjs",
+      "target": "module:tools/factory/lib/envelope.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/cli.mjs->module:tools/factory/lib/diagrams.mjs": {
+      "id": "imports:module:tools/factory/cli.mjs->module:tools/factory/lib/diagrams.mjs",
+      "source": "module:tools/factory/cli.mjs",
+      "target": "module:tools/factory/lib/diagrams.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/cli.mjs->module:tools/factory/lib/metrics.mjs": {
+      "id": "imports:module:tools/factory/cli.mjs->module:tools/factory/lib/metrics.mjs",
+      "source": "module:tools/factory/cli.mjs",
+      "target": "module:tools/factory/lib/metrics.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/cli.mjs->module:tools/factory/lib/policy.mjs": {
+      "id": "imports:module:tools/factory/cli.mjs->module:tools/factory/lib/policy.mjs",
+      "source": "module:tools/factory/cli.mjs",
+      "target": "module:tools/factory/lib/policy.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/cli.mjs->module:tools/factory/lib/schema.mjs": {
+      "id": "imports:module:tools/factory/cli.mjs->module:tools/factory/lib/schema.mjs",
+      "source": "module:tools/factory/cli.mjs",
+      "target": "module:tools/factory/lib/schema.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/cursor-scope-run.mjs->module:tools/factory/lib/glob.mjs": {
+      "id": "imports:module:tools/factory/cursor-scope-run.mjs->module:tools/factory/lib/glob.mjs",
+      "source": "module:tools/factory/cursor-scope-run.mjs",
+      "target": "module:tools/factory/lib/glob.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/cursor-scope-run.mjs->module:tools/factory/lib/policy.mjs": {
+      "id": "imports:module:tools/factory/cursor-scope-run.mjs->module:tools/factory/lib/policy.mjs",
+      "source": "module:tools/factory/cursor-scope-run.mjs",
+      "target": "module:tools/factory/lib/policy.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/epic-coordinator-run.mjs->module:tools/factory/lib/dag.mjs": {
+      "id": "imports:module:tools/factory/epic-coordinator-run.mjs->module:tools/factory/lib/dag.mjs",
+      "source": "module:tools/factory/epic-coordinator-run.mjs",
+      "target": "module:tools/factory/lib/dag.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/lib/policy.mjs->module:tools/factory/lib/glob.mjs": {
+      "id": "imports:module:tools/factory/lib/policy.mjs->module:tools/factory/lib/glob.mjs",
+      "source": "module:tools/factory/lib/policy.mjs",
+      "target": "module:tools/factory/lib/glob.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/lib/policy.mjs->module:tools/factory/lib/schema.mjs": {
+      "id": "imports:module:tools/factory/lib/policy.mjs->module:tools/factory/lib/schema.mjs",
+      "source": "module:tools/factory/lib/policy.mjs",
+      "target": "module:tools/factory/lib/schema.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/lib/schema.mjs->module:tools/factory/lib/dag.mjs": {
+      "id": "imports:module:tools/factory/lib/schema.mjs->module:tools/factory/lib/dag.mjs",
+      "source": "module:tools/factory/lib/schema.mjs",
+      "target": "module:tools/factory/lib/dag.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/policy-gate-run.mjs->module:tools/factory/lib/policy.mjs": {
+      "id": "imports:module:tools/factory/policy-gate-run.mjs->module:tools/factory/lib/policy.mjs",
+      "source": "module:tools/factory/policy-gate-run.mjs",
+      "target": "module:tools/factory/lib/policy.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    },
+    "imports:module:tools/factory/reconcile-run.mjs->module:tools/factory/lib/reconcile.mjs": {
+      "id": "imports:module:tools/factory/reconcile-run.mjs->module:tools/factory/lib/reconcile.mjs",
+      "source": "module:tools/factory/reconcile-run.mjs",
+      "target": "module:tools/factory/lib/reconcile.mjs",
+      "type": "imports",
+      "origin": "machine",
+      "confidence": "static"
+    }
+  },
+  "suppressions": {
+    "nodes": [],
+    "edges": []
+  },
+  "idAliases": {},
+  "groups": {
+    "lane:root": {
+      "id": "lane:root",
+      "label": "Root",
+      "laneType": "layer"
+    },
+    "lane:lib": {
+      "id": "lane:lib",
+      "label": "lib",
+      "laneType": "layer"
+    }
+  },
+  "views": [
+    {
+      "id": "components",
+      "title": "Components",
+      "level": 3,
+      "nodeIds": [
+        "module:tools/factory/child-issues-run.mjs",
+        "module:tools/factory/cli.mjs",
+        "module:tools/factory/cursor-scope-run.mjs",
+        "module:tools/factory/epic-coordinator-run.mjs",
+        "module:tools/factory/lib/claude-routine.mjs",
+        "module:tools/factory/lib/dag.mjs",
+        "module:tools/factory/lib/diagrams.mjs",
+        "module:tools/factory/lib/envelope.mjs",
+        "module:tools/factory/lib/glob.mjs",
+        "module:tools/factory/lib/metrics.mjs",
+        "module:tools/factory/lib/policy.mjs",
+        "module:tools/factory/lib/reconcile.mjs",
+        "module:tools/factory/lib/schema.mjs",
+        "module:tools/factory/policy-gate-run.mjs",
+        "module:tools/factory/reconcile-run.mjs"
+      ],
+      "layoutDir": "DOWN",
+      "layout": {}
+    }
+  ]
+}
