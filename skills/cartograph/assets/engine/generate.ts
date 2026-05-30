@@ -24,7 +24,7 @@ function arg(name: string, def?: string): string | undefined {
 }
 
 const repo = arg('repo')
-const migrate = process.argv.includes('--migrate')
+const keepC4 = process.argv.includes('--keep-c4') // opt OUT of deleting old LikeC4 artifacts
 const refine = process.argv.includes('--refine')
 const scan = arg('scan', '')!
 const out = arg('out', 'out')!
@@ -131,15 +131,12 @@ if (!result.ok) {
 }
 console.log(`wrote ${archPath} + site.json + changelog.json`)
 
-// Surface (and on --migrate, remove) dead artifacts from a prior LikeC4 mapping
-// so a re-mapped repo never carries two architecture systems side by side.
+// Remove dead artifacts from a prior LikeC4 mapping by default (so a re-mapped
+// repo never carries two architecture systems) — unless --keep-c4. Shared files
+// (a .gitlab-ci.yml referencing likec4) are reported, never auto-deleted.
 const stale = detectLikeC4Artifacts(repo)
 if (stale.removable.length || stale.manual.length) {
-  if (migrate) {
-    removeLikeC4Artifacts(repo, stale)
-    console.log(`migrate: removed ${stale.removable.join(', ') || 'nothing'}`)
-    if (stale.manual.length) console.log(`migrate: left shared file(s) for you to edit: ${stale.manual.join(', ')}`)
-  } else {
-    console.log(formatMigrationNotice(stale))
-  }
+  if (!keepC4) removeLikeC4Artifacts(repo, stale)
+  const notice = formatMigrationNotice(stale, !keepC4)
+  if (notice) console.log(notice)
 }

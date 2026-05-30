@@ -76,9 +76,11 @@ suppressions survive), **detects file renames/moves** (migrating edits via
 > no API key. Without it, doc routes show a friendly "not written yet" launchpad.
 > Estimate the cost first: `node "$SKILL/assets/engine/cost.ts" --manifest "$REPO/.cartograph/architecture.json"`.
 >
-> If the repo was previously mapped by the **old `repo-to-likec4`** skill, generate
-> prints a migration notice; pass `--migrate` to remove the stale `likec4/` dir and
-> `likec4-pages.yml` (shared CI files are reported, never auto-deleted).
+> **Replaces LikeC4 automatically.** generate deletes any LikeC4 artifacts it finds
+> — the `likec4/` dir, **any `*.c4` / `*.likec4` / `likec4.config.json` anywhere** in
+> the repo, and `.github/workflows/likec4-pages.yml` — so the repo never carries two
+> architecture systems. A `.gitlab-ci.yml` that references likec4 is **reported but
+> left** for you to edit (shared file). Pass **`--keep-c4`** to disable deletion.
 
 ### 4. Bundle into a self-contained viewer
 
