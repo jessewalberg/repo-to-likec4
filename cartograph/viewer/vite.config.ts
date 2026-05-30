@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { join, relative, resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { type Plugin, defineConfig } from 'vite'
@@ -15,9 +15,25 @@ const DATA_PLACEHOLDER = '__CARTOGRAPH_DATA__'
 //   CARTO_TEMPLATE=1  -> inject the PLACEHOLDER (produces the reusable skill
 //                        template; bundle.ts later swaps in any repo's data).
 //   otherwise         -> inline public/*.json (our dev/demo build).
+function readPages(pubDir: string): Record<string, string> {
+  const dir = resolve(pubDir, 'pages')
+  const out: Record<string, string> = {}
+  if (!existsSync(dir)) return out
+  const walk = (d: string) => {
+    for (const name of readdirSync(d)) {
+      const abs = join(d, name)
+      if (statSync(abs).isDirectory()) walk(abs)
+      else if (name.endsWith('.md') || name.endsWith('.mdx')) out[`pages/${relative(dir, abs).split('\\').join('/')}`] = readFileSync(abs, 'utf8')
+    }
+  }
+  walk(dir)
+  return out
+}
+
 function dataIsland(): Plugin {
   const template = process.env.CARTO_TEMPLATE === '1'
-  const read = (f: string) => JSON.parse(readFileSync(resolve(import.meta.dirname, 'public', f), 'utf8'))
+  const pubDir = resolve(import.meta.dirname, 'public')
+  const read = (f: string) => JSON.parse(readFileSync(resolve(pubDir, f), 'utf8'))
   return {
     name: 'cartograph-data-island',
     transformIndexHtml: {
@@ -31,7 +47,7 @@ function dataIsland(): Plugin {
             architecture: read('architecture.json'),
             site: read('site.json'),
             changelog: tryRead(read, 'changelog.json', { schemaVersion: 1, entries: [] }),
-            pages: {} as Record<string, string>,
+            pages: readPages(pubDir),
           }
           children = JSON.stringify(payload).replace(/<\//g, '<\\/')
         }

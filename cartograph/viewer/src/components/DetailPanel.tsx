@@ -45,6 +45,10 @@ interface DetailPanelProps {
   view: View
   onSelectNode: (id: string) => void
   onClose: () => void
+  /** Navigate to a node's doc page. */
+  onOpenDoc?: (docRef: string, nodeId: string) => void
+  /** Whether a doc page actually exists (drives the "not written yet" sub-label). */
+  docExists?: (docRef: string) => boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -107,6 +111,8 @@ export function DetailPanel({
   view,
   onSelectNode,
   onClose,
+  onOpenDoc,
+  docExists,
 }: DetailPanelProps): React.ReactElement {
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -173,6 +179,8 @@ export function DetailPanel({
         view={view}
         onSelectNode={onSelectNode}
         onClose={onClose}
+        onOpenDoc={onOpenDoc}
+        docExists={docExists}
       />
     </aside>
   )
@@ -193,12 +201,16 @@ function NodeDetail({
   view,
   onSelectNode,
   onClose,
+  onOpenDoc,
+  docExists,
 }: {
   node: ManifestNode
   manifest: Manifest
   view: View
   onSelectNode: (id: string) => void
   onClose: () => void
+  onOpenDoc?: (docRef: string, nodeId: string) => void
+  docExists?: (docRef: string) => boolean
 }): React.ReactElement {
   const kind = kindForType(node.type)
   const conf = confidencePill(node.data.confidence)
@@ -335,11 +347,17 @@ function NodeDetail({
           </section>
         ) : null}
 
-        {/* Documentation — Open doc page button + honest "not written yet" sub-label. */}
-        <section className="carto-detail__section" aria-label="Documentation">
-          <p className="carto-detail__caption">Documentation</p>
-          <DocButton />
-        </section>
+        {/* Documentation — Open doc page; the "not written yet" sub-label shows only
+            when the page genuinely doesn't exist. */}
+        {node.data.doc ? (
+          <section className="carto-detail__section" aria-label="Documentation">
+            <p className="carto-detail__caption">Documentation</p>
+            <DocButton
+              exists={docExists?.(node.data.doc) ?? false}
+              onOpen={() => onOpenDoc?.(node.data.doc as string, node.id)}
+            />
+          </section>
+        ) : null}
 
         {/* Summary — only when present (absent on all 15 fixture nodes). */}
         {summary ? (
@@ -564,20 +582,22 @@ function CopyPath({ path }: { path: string }): React.ReactElement {
   )
 }
 
-function DocButton(): React.ReactElement {
-  // The fixture's doc pages do not exist, so this routes to the missing-page
-  // empty state (App owns the route). The honest --warn-fg sub-label sets the
-  // expectation up front — advertising only what is true (§6/§11).
+function DocButton({ exists, onOpen }: { exists: boolean; onOpen: () => void }): React.ReactElement {
+  // Routes to the doc page (App owns the route). When the page hasn't been
+  // authored yet, an honest --warn-fg sub-label sets the expectation up front
+  // (the route still works — it lands on the missing-page launchpad). §6/§11.
   return (
     <div className="carto-detail__doc">
-      <button type="button" className="carto-detail__doc-btn">
+      <button type="button" className="carto-detail__doc-btn" onClick={onOpen}>
         <BookOpen size={14} strokeWidth={2} aria-hidden="true" />
         <span>Open doc page</span>
         <ArrowRight size={13} strokeWidth={2} aria-hidden="true" className="carto-detail__doc-arrow" />
       </button>
-      <span className="carto-detail__doc-sub" style={{ color: "var(--warn-fg)" }}>
-        not written yet
-      </span>
+      {exists ? null : (
+        <span className="carto-detail__doc-sub" style={{ color: "var(--warn-fg)" }}>
+          not written yet
+        </span>
+      )}
     </div>
   )
 }

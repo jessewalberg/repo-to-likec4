@@ -11,6 +11,7 @@ import { KeyboardHelp } from './components/KeyboardHelp'
 import { MarkdownPage } from './components/MarkdownPage'
 import { Sidebar } from './components/Sidebar'
 import { SidebarProvider, useSidebar } from './components/ui/leanSidebar'
+import { parseDoc } from './lib/doc'
 import { buildSearchIndex } from './lib/searchIndex'
 import type { AppRoute, CartographData, DocPage, NavEntry, View } from './lib/types'
 
@@ -189,6 +190,11 @@ function Shell({ data }: { data: CartographData }) {
             setSelectedNodeId(null)
             setSelectedEdgeId(null)
           }}
+          onOpenDoc={(docRef, nodeId) => {
+            setSelectedNodeId(nodeId)
+            setRoute({ kind: 'page', page: docRef, node: nodeId })
+          }}
+          docExists={(ref) => Boolean(data.pages[ref])}
         />
       </div>
       <CommandPalette index={searchIndex} open={commandOpen} onOpenChange={setCommandOpen} />
@@ -220,7 +226,7 @@ function Main({
 
   if (route.kind === 'page') {
     const raw = data.pages[route.page]
-    const page: DocPage | undefined = raw === undefined ? undefined : typeof raw === 'string' ? { body: raw } : raw
+    const page: DocPage | undefined = raw === undefined ? undefined : typeof raw === 'string' ? parseDoc(raw) : raw
     const sourceUrl = route.node ? manifest.nodes[route.node]?.data.links?.[0]?.url : undefined
     return (
       <div className="h-full overflow-auto p-8">
