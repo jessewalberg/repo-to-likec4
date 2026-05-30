@@ -519,7 +519,80 @@
         "module:tools/factory/reconcile-run.mjs"
       ],
       "layoutDir": "DOWN",
-      "layout": {}
+      "layout": {
+        "lane:root": {
+          "x": 249,
+          "y": 44,
+          "w": 1608,
+          "h": 160
+        },
+        "module:tools/factory/child-issues-run.mjs": {
+          "x": 292,
+          "y": 44
+        },
+        "module:tools/factory/cli.mjs": {
+          "x": 1096,
+          "y": 44
+        },
+        "module:tools/factory/cursor-scope-run.mjs": {
+          "x": 560,
+          "y": 44
+        },
+        "module:tools/factory/epic-coordinator-run.mjs": {
+          "x": 24,
+          "y": 44
+        },
+        "module:tools/factory/policy-gate-run.mjs": {
+          "x": 828,
+          "y": 44
+        },
+        "module:tools/factory/reconcile-run.mjs": {
+          "x": 1364,
+          "y": 44
+        },
+        "lane:lib": {
+          "x": 24,
+          "y": 324,
+          "w": 1833,
+          "h": 412
+        },
+        "module:tools/factory/lib/claude-routine.mjs": {
+          "x": 544,
+          "y": 44
+        },
+        "module:tools/factory/lib/dag.mjs": {
+          "x": 155,
+          "y": 316
+        },
+        "module:tools/factory/lib/diagrams.mjs": {
+          "x": 812,
+          "y": 44
+        },
+        "module:tools/factory/lib/envelope.mjs": {
+          "x": 1321,
+          "y": 44
+        },
+        "module:tools/factory/lib/glob.mjs": {
+          "x": 35,
+          "y": 180
+        },
+        "module:tools/factory/lib/metrics.mjs": {
+          "x": 1053,
+          "y": 44
+        },
+        "module:tools/factory/lib/policy.mjs": {
+          "x": 276,
+          "y": 44
+        },
+        "module:tools/factory/lib/reconcile.mjs": {
+          "x": 1589,
+          "y": 44
+        },
+        "module:tools/factory/lib/schema.mjs": {
+          "x": 349.33,
+          "y": 180
+        }
+      }
     }
   ]
 }
