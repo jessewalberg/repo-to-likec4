@@ -2827,3 +2827,74 @@
 .carto-detail__edit-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .carto-detail__edit-btn[aria-pressed="true"] { background: var(--infra-bg); color: var(--infra-fg); border-color: var(--infra-border); }
 .carto-detail__edit-btn--danger:hover { background: var(--queue-bg); color: var(--queue-fg); border-color: var(--queue-border); }
+
+/* ============================================================================
+   TourPlayer (CONTRACT §13, learning) — a floating bottom-center step card.
+   ========================================================================== */
+.carto-tour {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 30;
+  pointer-events: none; /* let the canvas pan/zoom around the card */
+}
+.carto-tour__card {
+  pointer-events: auto;
+  width: min(440px, calc(100vw - 48px));
+  background: var(--elev-panel);
+  border: 1px solid var(--elev-panel-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+  padding: var(--sp-4);
+}
+.carto-tour__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-2); }
+.carto-tour__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+.carto-tour__close {
+  display: inline-flex;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.carto-tour__close:hover { background: var(--n-100); color: var(--text-strong); }
+.carto-tour__close:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.carto-tour__title {
+  margin: 0 0 var(--sp-1);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-strong);
+}
+.carto-tour__body { margin: 0 0 var(--sp-3); font-size: var(--fs-sm); line-height: var(--lh-base); color: var(--text-muted); }
+.carto-tour__foot { display: flex; align-items: center; justify-content: space-between; }
+.carto-tour__count { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-subtle); }
+.carto-tour__nav { display: flex; gap: var(--sp-2); }
+.carto-tour__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--elev-card);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.carto-tour__btn:hover:not(:disabled) { background: var(--n-50); color: var(--text-strong); }
+.carto-tour__btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.carto-tour__btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.carto-tour__btn--next { background: var(--n-900); color: var(--text-on-accent); border-color: var(--n-900); }
+.carto-tour__btn--next:hover:not(:disabled) { background: var(--n-800); color: var(--text-on-accent); }

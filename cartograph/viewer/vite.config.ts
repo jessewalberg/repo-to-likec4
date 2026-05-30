@@ -47,6 +47,7 @@ function dataIsland(): Plugin {
             architecture: read('architecture.json'),
             site: read('site.json'),
             changelog: tryRead(read, 'changelog.json', { schemaVersion: 1, entries: [] }),
+            tours: tryRead(read, 'tours.json', { schemaVersion: 1, tours: [] }),
             pages: readPages(pubDir),
           }
           children = JSON.stringify(payload).replace(/<\//g, '<\\/')

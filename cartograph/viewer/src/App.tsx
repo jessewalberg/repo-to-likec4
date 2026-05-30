@@ -10,12 +10,13 @@ import { EmptyState } from './components/EmptyState'
 import { KeyboardHelp } from './components/KeyboardHelp'
 import { MarkdownPage } from './components/MarkdownPage'
 import { Sidebar } from './components/Sidebar'
+import { TourPlayer } from './components/TourPlayer'
 import { SidebarProvider, useSidebar } from './components/ui/leanSidebar'
 import { parseDoc } from './lib/doc'
 import { initEditStore, useEditStore, useUndoRedo } from './lib/editStore'
 import { downloadManifest } from './lib/exportManifest'
 import { buildSearchIndex } from './lib/searchIndex'
-import type { AppRoute, CartographData, DocPage, Manifest, NavEntry, View } from './lib/types'
+import type { AppRoute, CartographData, DocPage, Manifest, NavEntry, Tour, View } from './lib/types'
 
 export function App({ data }: { data: CartographData }) {
   return (
@@ -51,7 +52,7 @@ function routeFromEntry(entry: NavEntry): AppRoute | null {
 function Shell({ data }: { data: CartographData }) {
   const { site } = data
   const sidebar = useSidebar()
-  const { fitView } = useReactFlow()
+  const { fitView, setCenter } = useReactFlow()
 
   // The working manifest lives in the zundo store (undo/redo); the viewer renders
   // from it so every edit is live + reversible. Seed it once from the loaded data.
@@ -75,6 +76,7 @@ function Shell({ data }: { data: CartographData }) {
   const [commandOpen, setCommandOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [dark, setDark] = useState(false)
+  const [activeTour, setActiveTour] = useState<Tour | null>(null)
 
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? 'dark' : ''
@@ -120,26 +122,77 @@ function Shell({ data }: { data: CartographData }) {
     if (node) setSelectedNodeId(node)
   }, [])
 
-  const activate = useCallback((entry: NavEntry) => {
-    const r = routeFromEntry(entry)
-    if (r) setRoute(r)
-    if (entry.node) setSelectedNodeId(entry.node)
-  }, [])
+  const startTour = useCallback(
+    (tourId: string) => {
+      const t = data.tours.tours.find((x) => x.id === tourId)
+      if (t) setActiveTour(t)
+    },
+    [data],
+  )
+
+  const activate = useCallback(
+    (entry: NavEntry) => {
+      if (entry.kind === 'tour' && entry.tourId) {
+        startTour(entry.tourId) // tours run as an overlay, not a route
+        return
+      }
+      const r = routeFromEntry(entry)
+      if (r) setRoute(r)
+      if (entry.node) setSelectedNodeId(entry.node)
+    },
+    [startTour],
+  )
 
   const onFit = useCallback(() => fitView({ padding: 0.2, duration: 300 }), [fitView])
+
+  // Center the canvas on a node (best-effort: absolute position from the manifest;
+  // delayed so it lands after a view switch's fitView settles).
+  const centerOnNode = useCallback(
+    (nodeId: string) => {
+      const v = views.find((vw) => vw.nodeIds.includes(nodeId))
+      const p = v?.layout[nodeId]
+      if (!v || !p) return
+      const n = manifest.nodes[nodeId]
+      const w = n?.width ?? 220
+      const h = n?.height ?? 72
+      let x = p.x + w / 2
+      let y = p.y + h / 2
+      const parent = n?.parentId
+      if (parent && v.layout[parent]) {
+        x += v.layout[parent].x
+        y += v.layout[parent].y
+      }
+      window.setTimeout(() => setCenter(x, y, { zoom: 1.1, duration: 400 }), 350)
+    },
+    [views, manifest, setCenter],
+  )
+
+  // A tour step focuses its node (select -> route+highlight, then center); an
+  // intro/outro step (no node) just clears the selection on the current view.
+  const tourFocus = useCallback(
+    (nodeId: string | null) => {
+      if (nodeId) {
+        selectNode(nodeId)
+        centerOnNode(nodeId)
+      } else {
+        setSelectedNodeId(null)
+      }
+    },
+    [selectNode, centerOnNode],
+  )
 
   // Build the ⌘K index ONCE per dataset (CONTRACT §8), not on every navigation.
   // The handlers change as route/selection state changes, so route them through a
   // ref the index can call without being a useMemo dependency.
-  const actionsRef = useRef({ selectNode, selectEdge, openPage, setRoute })
-  actionsRef.current = { selectNode, selectEdge, openPage, setRoute }
+  const actionsRef = useRef({ selectNode, selectEdge, openPage, startTour })
+  actionsRef.current = { selectNode, selectEdge, openPage, startTour }
   const searchIndex = useMemo(
     () =>
       buildSearchIndex(data, {
         selectNode: (id) => actionsRef.current.selectNode(id),
         selectEdge: (id) => actionsRef.current.selectEdge(id),
         openPage: (page, node) => actionsRef.current.openPage(page, node),
-        openTour: (tourId) => actionsRef.current.setRoute({ kind: 'tour', tourId }),
+        openTour: (tourId) => actionsRef.current.startTour(tourId),
       }),
     [data],
   )
@@ -231,6 +284,7 @@ function Shell({ data }: { data: CartographData }) {
       </div>
       <CommandPalette index={searchIndex} open={commandOpen} onOpenChange={setCommandOpen} />
       <KeyboardHelp open={helpOpen} onOpenChange={setHelpOpen} />
+      {activeTour ? <TourPlayer tour={activeTour} onFocus={tourFocus} onExit={() => setActiveTour(null)} /> : null}
     </div>
   )
 }

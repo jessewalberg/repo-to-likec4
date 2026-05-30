@@ -27,6 +27,7 @@ function data(indexCats: string[] = ['nodes', 'edges', 'pages', 'tours']): Carto
       ],
     },
     changelog: { schemaVersion: 1, entries: [] },
+    tours: { schemaVersion: 1, tours: [] },
     pages: {},
   }
 }

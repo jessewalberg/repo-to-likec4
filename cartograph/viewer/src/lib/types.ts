@@ -139,10 +139,28 @@ export interface DocPage {
   body: string
 }
 
+export interface TourStep {
+  nodeId?: string
+  title: string
+  body: string
+}
+
+export interface Tour {
+  id: string
+  title: string
+  steps: TourStep[]
+}
+
+export interface Tours {
+  schemaVersion: number
+  tours: Tour[]
+}
+
 export interface CartographData {
   architecture: Manifest
   site: Site
   changelog: Changelog
+  tours: Tours
   /** docRef -> raw markdown OR a parsed DocPage. `{}` when no pages exist yet. */
   pages: Record<string, string | DocPage>
 }
