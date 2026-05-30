@@ -84,6 +84,28 @@ export interface Manifest {
   views: View[]
 }
 
+// ---- merge engine (proven in spike/phase0) ----
+
+export interface MergeReport {
+  /** New recon nodes added this run. */
+  added: string[]
+  /** Nodes recon no longer sees — kept but muted (confidence 'unknown'), not deleted. */
+  mutedRemoved: string[]
+  /** Human edits/layout migrated from an old id to a new id via idAliases. */
+  migrated: { from: string; to: string }[]
+  /** Recon re-discovered these but the human suppressed them — skipped. */
+  suppressedSkipped: string[]
+  /** Per-node list of fields whose human value was preserved over recon. */
+  humanFieldsPreserved: { id: string; fields: string[] }[]
+}
+
+export interface MergeResult {
+  manifest: Manifest
+  report: MergeReport
+  /** New nodes that still need a position from the (frozen) layout pass; excludes pinned. */
+  nodesNeedingLayout: string[]
+}
+
 // ---- site.json (sidebar nav) ----
 
 export type NavKind = 'section' | 'tree' | 'group' | 'page' | 'view' | 'tour' | 'changelog'
