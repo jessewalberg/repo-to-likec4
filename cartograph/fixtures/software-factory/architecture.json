@@ -22,7 +22,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/child-issues-run.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/child-issues-run.md"
+        "doc": "pages/modules/tools/factory/child-issues-run.md",
+        "summary": "Executes child issue processing in the factory toolchain"
       },
       "width": 220,
       "height": 72,
@@ -46,7 +47,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/cli.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/cli.md"
+        "doc": "pages/modules/tools/factory/cli.md",
+        "summary": "CLI entry point coordinating five factory modules"
       },
       "width": 220,
       "height": 72,
@@ -70,7 +72,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/cursor-scope-run.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/cursor-scope-run.md"
+        "doc": "pages/modules/tools/factory/cursor-scope-run.md",
+        "summary": "Policy-constrained file globbing for cursor scope"
       },
       "width": 220,
       "height": 72,
@@ -94,7 +97,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/epic-coordinator-run.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/epic-coordinator-run.md"
+        "doc": "pages/modules/tools/factory/epic-coordinator-run.md",
+        "summary": "Runs epic-coordination workflows using DAG structures"
       },
       "width": 220,
       "height": 72,
@@ -118,7 +122,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/claude-routine.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/lib/claude-routine.md"
+        "doc": "pages/modules/tools/factory/lib/claude-routine.md",
+        "summary": "Claude routine definition or management for the factory toolset"
       },
       "width": 220,
       "height": 72,
@@ -142,7 +147,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/dag.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/lib/dag.md"
+        "doc": "pages/modules/tools/factory/lib/dag.md",
+        "summary": "Directed acyclic graph utilities for task coordination"
       },
       "width": 220,
       "height": 72,
@@ -166,7 +172,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/diagrams.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/lib/diagrams.md"
+        "doc": "pages/modules/tools/factory/lib/diagrams.md",
+        "summary": "Diagram generation and manipulation utilities for the factory CLI"
       },
       "width": 220,
       "height": 72,
@@ -190,7 +197,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/envelope.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/lib/envelope.md"
+        "doc": "pages/modules/tools/factory/lib/envelope.md",
+        "summary": "Self-contained utility module providing envelope/container abstractions for the factory CLI"
       },
       "width": 220,
       "height": 72,
@@ -214,7 +222,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/glob.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/lib/glob.md"
+        "doc": "pages/modules/tools/factory/lib/glob.md",
+        "summary": "Glob-based file path matching utility"
       },
       "width": 220,
       "height": 72,
@@ -238,7 +247,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/metrics.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/lib/metrics.md"
+        "doc": "pages/modules/tools/factory/lib/metrics.md",
+        "summary": "Metrics collection and export utilities for the factory CLI"
       },
       "width": 220,
       "height": 72,
@@ -262,7 +272,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/policy.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/lib/policy.md"
+        "doc": "pages/modules/tools/factory/lib/policy.md",
+        "summary": "Policy enforcement and validation for CLI operations and gate checks"
       },
       "width": 220,
       "height": 72,
@@ -286,7 +297,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/reconcile.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/lib/reconcile.md"
+        "doc": "pages/modules/tools/factory/lib/reconcile.md",
+        "summary": "Core reconciliation logic module with no external dependencies"
       },
       "width": 220,
       "height": 72,
@@ -310,7 +322,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/lib/schema.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/lib/schema.md"
+        "doc": "pages/modules/tools/factory/lib/schema.md",
+        "summary": "Defines schemas and validation structures, bridging DAG utilities with CLI and policy layer consumers"
       },
       "width": 220,
       "height": 72,
@@ -334,7 +347,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/policy-gate-run.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/policy-gate-run.md"
+        "doc": "pages/modules/tools/factory/policy-gate-run.md",
+        "summary": "Executes policy gates in the factory pipeline"
       },
       "width": 220,
       "height": 72,
@@ -358,7 +372,8 @@
             "url": "https://github.com/theroomofrequirement/software-factory/blob/main/tools/factory/reconcile-run.mjs"
           }
         ],
-        "doc": "pages/modules/tools/factory/reconcile-run.md"
+        "doc": "pages/modules/tools/factory/reconcile-run.md",
+        "summary": "Orchestrator or CLI entry point for reconciliation operations"
       },
       "width": 220,
       "height": 72,
@@ -370,7 +385,7 @@
       "origin": "machine",
       "data": {
         "label": "lib",
-        "summary": "9 modules",
+        "summary": "Library utilities container for factory tool",
         "metadata": {
           "path": "tools/factory/lib",
           "modules": 9
@@ -394,7 +409,7 @@
       "origin": "machine",
       "data": {
         "label": "Root",
-        "summary": "6 modules",
+        "summary": "Factory tool root container — entry point for code generation and recon",
         "metadata": {
           "path": "tools/factory",
           "modules": 6
