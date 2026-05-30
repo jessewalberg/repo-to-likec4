@@ -9,6 +9,13 @@ implicit phased plan explicit; update it as items land.
 - **Layout stage** — elkjs run once per view, positions baked into `view.layout` (`fe5e093`).
 - **LikeC4 migration/cleanup** — re-mapping a repo that still carries old `repo-to-likec4`
   artifacts now detects them and removes the wholly-owned ones on `--migrate` (`186b702`).
+- **Three-way merge wired into the pipeline** — a re-run over an existing `architecture.json`
+  merges instead of clobbering; human label/pin/position/annotation/suppression all survive,
+  removed nodes are muted not deleted, renames migrate via `idAliases` (`3baa263`, `861b66b`,
+  `d77e53a`). Proven end-to-end.
+- **Incremental freeze layout** — only the nodes the merge reports as new get placed; existing
+  positions are frozen (`374bd2f`).
+- **Changelog** — each re-run's `MergeReport` becomes a `changelog.json` entry (`d4b181d`).
 
 ## Phase 1 — the viewer app (next up)
 
@@ -26,16 +33,14 @@ The generation pipeline (recon → model → layout → validate) exists; **ther
 - **Live token-cost benchmark** on the software-factory testbed — Phase-0 numbers are modeled,
   not a real billed run (carried from `phase0-findings`).
 
-## Phase 2 — incremental + changelog
+## Phase 2 — remaining
 
-- **Wire the merge/patch layer into `generate.ts`** — the three-way merge is proven (8/8 spike)
-  but the pipeline still does a clean regenerate every run; human edits won't survive yet. This
-  is the load-bearing pivot promise.
-- **Incremental freeze layout** — pin existing nodes, place only new ones via `elk.position`
-  hints + an overlap guard (noted in `layout.ts` header).
-- **Changelog** — `changelog.json` produced from the merge run's `MergeReport`.
-- **Rename-detection threshold tuning** + a false-positive error bar (harness exists in the
-  spike: `rename-detect.ts` + `real-proof.test.ts`).
+- **Incremental placement into existing lanes** — a new node whose `parentId` is an existing
+  lane is currently placed at root level (below content), not nested inside the frozen lane.
+  Nesting it (and growing the lane box to fit) is the remaining `layoutNew` refinement.
+- **Rename detection** — port `rename-detect.ts` from the spike so `idAliases` are produced on
+  re-run (merge already consumes them); then threshold tuning + a false-positive error bar
+  (harness: spike `rename-detect.ts` + `real-proof.test.ts`).
 - **Opt-in CI-on-merge** — Batch API + Haiku-for-view-refine + debounce + a daily spend cap
   (manual `/map` is the chosen default; see `phase0-findings`).
 
