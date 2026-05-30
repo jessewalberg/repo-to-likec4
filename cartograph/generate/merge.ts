@@ -107,6 +107,10 @@ export function mergeManifest(base: Manifest, fresh: Manifest, current: Manifest
         const n = mergedNodes[id]
         if (n && (n.origin === 'human' || n.data.confidence === 'unknown')) addToView(id)
       }
+      // carry forward frozen container/lane positions (layout keys that aren't node ids)
+      for (const [k, pos] of Object.entries(cv.layout)) {
+        if (!(k in layout) && !mergedNodes[k] && !(k in fresh.nodes)) layout[k] = pos
+      }
     }
     mergedViews.push({ ...fv, nodeIds, layout })
   }

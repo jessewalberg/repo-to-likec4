@@ -248,3 +248,23 @@ test('F: a human-authored node (origin human) survives recon that never produced
   assert.ok(manifest.nodes['note:roadmap'], 'human-authored node is not muted or deleted')
   assert.notEqual(manifest.nodes['note:roadmap'].data.confidence, 'unknown', 'human node is NOT muted as a recon removal')
 })
+
+// ===========================================================================
+// Scenario G — a frozen LANE/container position (a layout key that is not a node
+// id) survives a recon refresh, so grouped views don't lose their lane boxes.
+// ===========================================================================
+test('G: frozen lane/container layout positions survive a recon refresh', () => {
+  const base = m({ nodes: nodesMap(node('a')) })
+  const current = m({
+    nodes: nodesMap(node('a')),
+    views: [{ id: 'components', title: 'Components', nodeIds: ['a'], layout: { a: { x: 5, y: 5 }, 'lane:lib': { x: 0, y: 0, w: 300, h: 200 } } }],
+  })
+  const fresh = m({
+    nodes: nodesMap(node('a')),
+    views: [{ id: 'components', title: 'Components', nodeIds: ['a'], layout: {} }],
+  })
+
+  const { manifest } = mergeManifest(base, fresh, current)
+  assert.deepEqual(manifest.views[0].layout['lane:lib'], { x: 0, y: 0, w: 300, h: 200 }, 'lane box carried forward')
+  assert.deepEqual(manifest.views[0].layout.a, { x: 5, y: 5 }, 'node position still preserved')
+})
