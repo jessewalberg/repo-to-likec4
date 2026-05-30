@@ -1,0 +1,39 @@
+# Cartograph → GitHub Pages.
+# Deploys the self-contained architecture viewer (cartograph-site/index.html) to
+# GitHub Pages. The viewer is ONE static HTML file with its data inlined, so this
+# job only uploads + deploys it — no build, no Node, no secrets.
+#
+# One-time setup: repo Settings → Pages → Source = "GitHub Actions".
+# Refresh the diagram by re-running the Cartograph skill and committing the new
+# cartograph-site/index.html (or trigger this workflow manually).
+name: Cartograph Pages
+
+on:
+  push:
+    branches: [main, master] # ← keep only your default branch if you prefer
+    paths: ["cartograph-site/**"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: cartograph-site
+      - id: deployment
+        uses: actions/deploy-pages@v4

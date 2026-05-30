@@ -1,0 +1,4 @@
+# The shipped engine's deps are installed on first use, not committed.
+assets/engine/node_modules/
+assets/engine/package-lock.json
+*.log
