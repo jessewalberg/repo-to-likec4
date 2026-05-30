@@ -16,35 +16,42 @@ implicit phased plan explicit; update it as items land.
 - **Incremental freeze layout** — only the nodes the merge reports as new get placed; existing
   positions are frozen (`374bd2f`).
 - **Changelog** — each re-run's `MergeReport` becomes a `changelog.json` entry (`d4b181d`).
+- **The viewer app (Phase-1 shell)** — `cartograph/viewer/`, a light-OKLCH React 19 + `@xyflow/react`
+  v12 app: app shell (sidebar / canvas / detail panel / header), lanes as RF subflows reading the
+  baked layout, 3 edge variants, ⌘K search, changelog, markdown pages with empty states, first-class
+  a11y. Single-file `viewer.html` build. 82 unit tests; renders the fixture with 0 console errors
+  (`c4e978d` + review fixes). Design direction settled **LIGHT** (ADR drift fixed).
+- **Installable skill + GitHub Pages deploy** — `skills/cartograph/`: prebuilt template +
+  toolchain-free `bundle.ts` injector (builds the viewer for ANY repo, no npm/vite for the user) +
+  `cartograph-pages.yml` Pages deploy + `pack.sh` (`efd953a`, `f79b55b`). Proven end-to-end offline.
 
-## Phase 1 — the viewer app (next up)
+## Remaining — content & editing (the real next gaps)
 
-The generation pipeline (recon → model → layout → validate) exists; **there is no app yet.**
+- **`view-refine` LLM stage** *(biggest gap)* — generate each node's prose (`summary`/`description`)
+  and its `pages/**.md` doc page from the manifest (schema-constrained, human-editable, merge-
+  preserved). Until this lands: node cards have no summary, every doc route shows the missing-page
+  state, and there's nothing for tours to teach. This is the only LLM-using stage; tier = Haiku.
+- **In-viewer write-back (editing parity)** — the viewer is read-only (`nodesDraggable=false`); human
+  edits today must be made by hand in `architecture.json`. ADR-0001 Phase-2 calls for drag / rename /
+  group / hide / pin / annotate from the UI → manifest (RFC-6902 patch, `zundo` undo). The merge
+  layer that makes those edits survive is already built; the UI surface that produces them is not.
 
-- **React Flow viewer** — self-contained `viewer.html` with an inlined JSON data island;
-  `@xyflow/react` v12 canvas that *reads the baked `view.layout`* (lanes as RF subflows), no
-  layout at view-time.
-- **App shell** — shadcn sidebar (Documentation / Architecture / Modules / Learning) + main +
-  detail panel; MDX page renderer; `site.json`-driven nav; per-node `doc`/`lesson` attachment.
-- **Global ⌘K search.**
-- **Design system** — OKLCH dark-first, `@xyflow/react/dist/base.css` + owned `--xy-*` tokens.
-- **`view-refine` agent stage** — authors the editable docs/lessons + per-field provenance
-  (`pages/**.md`). Today `buildSite` only scaffolds nav.
-- **Live token-cost benchmark** on the software-factory testbed — Phase-0 numbers are modeled,
-  not a real billed run (carried from `phase0-findings`).
+## Remaining — engine refinements
 
-## Phase 2 — remaining
+- **Incremental placement into existing lanes** — a new node whose `parentId` is an existing lane is
+  placed at root level (below content), not nested inside the frozen lane + grown box. `layoutNew`
+  refinement.
+- **Rename detection** — port `rename-detect.ts` from the spike so `idAliases` are produced on re-run
+  (merge already consumes them); then threshold tuning + a false-positive error bar.
+- **Multi-view / archetypes** — generate is single-view (`components`). The C4 altitude ladder
+  (context / container / component), archetype-driven view planning, and collapse/semantic-zoom are
+  still to come.
+- **Multi-language recon** — recon walks JS/TS only; Python/Go/Java enhancers carry `confidence:'inferred'`.
+- **Live token-cost benchmark** on the testbed — Phase-0 numbers are modeled, not a billed run.
+- **Opt-in CI-on-merge** — Batch API + Haiku view-refine + debounce + a daily spend cap (manual
+  `/map` is the chosen default).
 
-- **Incremental placement into existing lanes** — a new node whose `parentId` is an existing
-  lane is currently placed at root level (below content), not nested inside the frozen lane.
-  Nesting it (and growing the lane box to fit) is the remaining `layoutNew` refinement.
-- **Rename detection** — port `rename-detect.ts` from the spike so `idAliases` are produced on
-  re-run (merge already consumes them); then threshold tuning + a false-positive error bar
-  (harness: spike `rename-detect.ts` + `real-proof.test.ts`).
-- **Opt-in CI-on-merge** — Batch API + Haiku-for-view-refine + debounce + a daily spend cap
-  (manual `/map` is the chosen default; see `phase0-findings`).
+## Remaining — learning UX (Phase 3)
 
-## Phase 3 — learning UX
-
-- Deep learning / role tours, full auto-generated nested Modules trees, per-component lessons
-  (multi-view + learning UX).
+- The tour **player** (currently a placeholder landing), per-component lessons, full auto-generated
+  nested Modules/Learning trees, the 3 role entry points.
