@@ -51,7 +51,7 @@ export function Sidebar({
   const hasRepo = typeof repo === 'string' && repo.trim().length > 0
 
   return (
-    <SidebarPanel aria-label="Cartograph navigation">
+    <SidebarPanel id="sidebar" tabIndex={-1} aria-label="Cartograph navigation">
       <div className="carto-sidebar flex h-full flex-col">
         {/* Brand */}
         <div className="carto-sidebar__brand flex items-center gap-2 px-3 py-3">

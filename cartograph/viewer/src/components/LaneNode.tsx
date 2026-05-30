@@ -1,6 +1,5 @@
 import type { NodeProps } from '@xyflow/react'
 
-import { useReducedMotion } from '../lib/useReducedMotion'
 import type { CartoNode, LaneNodeData } from '../lib/types'
 
 /**
@@ -9,21 +8,18 @@ import type { CartoNode, LaneNodeData } from '../lib/types'
  * A *field, not a card*: a soft zone wash (`--zone-wash`) over which the canvas
  * dot grid shows through, a 1px `--divider` hairline, `--r-lg`, and NO shadow so
  * it reads as territory sitting *behind* the cards (zIndex is owned by the flow
- * graph). The only chrome is a floating top-left eyebrow header (no fill): a
+ * graph). The chrome is a floating top-left eyebrow header (no fill): a
  * 3px×16px territory tick in `var(--zone)`, the disambiguated label
- * (`ROOT · entry-point runners`), and a derived count badge (`· 6`). The header
- * is a real <button aria-expanded> that toggles collapse via `data.onToggle`.
+ * (`ROOT · entry-point runners`), and a derived count badge (`· 6`).
  *
- * Presentation only: the collapsed flag + onToggle arrive from Canvas. Collapse
- * is information-bearing, so it applies instantly; only the height *transition*
- * is motion and is gated by `prefers-reduced-motion`.
+ * The header is a non-interactive label this phase: interactive lane collapse
+ * (hiding children + resizing the lane) is a Phase-2/3 item, so we don't ship a
+ * dead <button>/aria-expanded that does nothing. The `collapsed`/`onToggle`
+ * fields stay on LaneNodeData for when that lands.
  */
 export function LaneNode({ data }: NodeProps<CartoNode>) {
   // This component is only registered for nodeType 'lane', so data is LaneNodeData.
-  const lane = data as LaneNodeData
-  const { label, zone, count, collapsed, descriptor, onToggle } = lane
-
-  const reducedMotion = useReducedMotion()
+  const { label, zone, count, descriptor } = data as LaneNodeData
 
   const safeCount = Number.isFinite(count) ? count : 0
   const hasDescriptor = typeof descriptor === 'string' && descriptor.trim().length > 0
@@ -31,7 +27,6 @@ export function LaneNode({ data }: NodeProps<CartoNode>) {
   return (
     <div
       data-zone={zone}
-      data-collapsed={collapsed ? 'true' : undefined}
       role="group"
       aria-label={`${label} lane, ${safeCount} components`}
       className="carto-lane"
@@ -42,24 +37,11 @@ export function LaneNode({ data }: NodeProps<CartoNode>) {
         border: '1px solid var(--divider)',
         borderRadius: 'var(--r-lg)',
         // No shadow — the lane is a field behind the cards, not a floating object.
-        transition: reducedMotion ? 'none' : 'height 140ms ease',
       }}
     >
-      <button
-        type="button"
-        className="carto-lane__header nodrag nopan"
-        aria-expanded={!collapsed}
-        aria-label={
-          collapsed
-            ? `Expand ${label} lane, ${safeCount} components`
-            : `Collapse ${label} lane, ${safeCount} components`
-        }
+      <div
+        className="carto-lane__header"
         title={hasDescriptor ? `${label} — ${descriptor}` : label}
-        onClick={(event) => {
-          // Don't let the click bubble into RF selection / pan handling.
-          event.stopPropagation()
-          onToggle?.()
-        }}
       >
         <span aria-hidden="true" className="carto-lane__tick" />
         <span className="carto-lane__eyebrow">
@@ -77,7 +59,7 @@ export function LaneNode({ data }: NodeProps<CartoNode>) {
           </span>
           <span className="carto-lane__count">{safeCount}</span>
         </span>
-      </button>
+      </div>
     </div>
   )
 }

@@ -396,7 +396,6 @@
   color: inherit;
   font: inherit;
   text-align: left;
-  cursor: pointer;
   z-index: 1;
   -webkit-user-select: none;
   user-select: none;
@@ -441,18 +440,8 @@
   opacity: 0.7;
 }
 
-/* Focus-visible affordance: the locked focus ring, never removed (a11y §9). */
-.carto-lane__header:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
-/* Hover lifts the header's contrast a touch so the toggle reads as interactive. */
-.carto-lane__header:hover .carto-lane__label,
-.carto-lane__header:hover .carto-lane__descriptor,
-.carto-lane__header:hover .carto-lane__count {
-  color: var(--text-muted);
-}
+/* The lane header is a non-interactive label this phase (no collapse yet), so it
+   carries no pointer/hover/focus affordance — nothing to imply clickability. */
 
 /* ===== src/components/edges/DataEdge.tsx ===== */
 /* ── DataEdge (CONTRACT §6 variant 2) ─────────────────────────────────────────
@@ -1807,132 +1796,6 @@
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--text-subtle);
-}
-
-/* ===== src/components/Breadcrumb.tsx ===== */
-/* ── Breadcrumb (CONTRACT §2) ─────────────────────────────────────────────
-   Header path trail. Flat chrome (no shadow), --text-muted leading links /
-   --text-strong destination, chevron separators, ellipsis overflow, and the
-   tinted you-are-here pin. Focus rings are locked on every focusable (§9); the
-   only transition is hover colour (no information-bearing motion to gate). */
-
-.carto-crumb {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  line-height: var(--lh-tight);
-}
-
-.carto-crumb__list {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.carto-crumb__item {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
-}
-
-.carto-crumb__sep {
-  flex: none;
-  margin: 0 1px;
-  color: var(--n-400);
-}
-
-/* Leading crumb — clickable shortcut (--text-muted, lifts to --text-strong). */
-.carto-crumb__link {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  max-width: 18ch;
-  min-width: 0;
-  margin: 0;
-  padding: 2px 5px;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--text-muted);
-  font: inherit;
-  cursor: pointer;
-  transition: color 120ms ease, background-color 120ms ease;
-}
-
-.carto-crumb__link:hover {
-  color: var(--text-strong);
-  background: var(--n-100);
-}
-
-.carto-crumb__link:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
-/* Destination crumb — non-link, --text-strong. */
-.carto-crumb__leaf {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  max-width: 24ch;
-  min-width: 0;
-  padding: 2px 5px;
-  color: var(--text-strong);
-  font-weight: var(--fw-semibold);
-  letter-spacing: var(--tracking-tight);
-}
-
-/* Truncate any long segment; full text stays in the element title. */
-.carto-crumb__text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.carto-crumb__icon {
-  flex: none;
-  color: var(--text-subtle);
-}
-
-/* Collapsed-middle marker (overflow past 4 levels). Hidden path in its title. */
-.carto-crumb__ellipsis {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 3px;
-  color: var(--text-subtle);
-  cursor: default;
-}
-
-/* You-are-here pin — middot + tinted selected-node filename (mono). */
-.carto-crumb__item--pin {
-  gap: 4px;
-}
-
-.carto-crumb__middot {
-  flex: none;
-  color: var(--n-400);
-  font-weight: var(--fw-semibold);
-}
-
-.carto-crumb__pin {
-  max-width: 22ch;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  /* Inline `color` (trailingTint) overrides this default when a node is selected. */
-  color: var(--text-muted);
 }
 
 /* ===== src/components/AppHeader.tsx ===== */

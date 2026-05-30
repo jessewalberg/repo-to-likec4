@@ -13,6 +13,7 @@ import {
 import { NodeIcon } from "./NodeIcon"
 import { Legend } from "./Legend"
 import { importedBy, importsOf, laneOf } from "../lib/graph"
+import { kindForType, zoneForLane } from "../lib/manifestToFlow"
 import type {
   Confidence,
   Group,
@@ -51,38 +52,8 @@ interface DetailPanelProps {
 // Kept private to honour the single-export contract — keep the two in lockstep.
 // ---------------------------------------------------------------------------
 
-/** component -> external alias (fixture truth); the 6 vivid hues stay in reserve. */
-const KIND_BY_TYPE: Record<string, KindKey> = {
-  service: "service",
-  gateway: "service",
-  worker: "service",
-  function: "service",
-  api: "service",
-  webapp: "frontend",
-  frontend: "frontend",
-  ui: "frontend",
-  web: "frontend",
-  datastore: "datastore",
-  database: "datastore",
-  db: "datastore",
-  cache: "datastore",
-  storage: "datastore",
-  queue: "queue",
-  event: "queue",
-  topic: "queue",
-  stream: "queue",
-  state: "queue",
-  external: "external",
-  person: "external",
-  component: "external",
-  module: "external",
-  decision: "external",
-  entity: "external",
-}
-
-function kindForType(type: string): KindKey {
-  return KIND_BY_TYPE[type] ?? "external"
-}
+// kindForType + zoneForLane are imported from ../lib/manifestToFlow (one source
+// of truth — the same mapping the canvas transform uses) rather than re-declared.
 
 /** Human label for a kind pill (calm, never an alarm). */
 function kindLabel(kind: KindKey): string {
@@ -118,12 +89,6 @@ function territoryChip(
   if (!lane) return null
   const descriptor = LANE_DESCRIPTOR[lane.label.toLowerCase()] ?? null
   return { label: lane.label, descriptor }
-}
-
-/** Zone key by lane order so the territory swatch reads the right --zone-* token. */
-function zoneForLane(laneId: string, laneOrder: string[]): "a" | "b" {
-  const i = laneOrder.indexOf(laneId)
-  return (i < 0 ? 0 : i) % 2 === 0 ? "a" : "b"
 }
 
 /** Mono path from metadata.path (string only; numeric/absent -> null). */
@@ -166,8 +131,10 @@ export function DetailPanel({
     return (
       <aside
         ref={panelRef}
+        id="detail"
         className="carto-detail"
         aria-label="Legend"
+        tabIndex={-1}
         style={panelSurfaceStyle}
       >
         <Legend view={view} manifest={manifest} />
@@ -179,6 +146,7 @@ export function DetailPanel({
     return (
       <aside
         ref={panelRef}
+        id="detail"
         className="carto-detail"
         role="region"
         aria-label="Edge details"

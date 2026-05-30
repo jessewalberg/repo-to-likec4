@@ -26,6 +26,8 @@ import type { DocPage } from '../lib/types'
 export interface MarkdownPageProps {
   /** The node's `data.doc` ref (a key into the pages island). */
   docRef?: string
+  /** The real architecture node id this page belongs to (route.node), if any. */
+  nodeId?: string
   /** The resolved page, or undefined when the file never existed. */
   page?: DocPage
   /** Selects the node on the canvas (the launchpad out of the empty state). */
@@ -107,12 +109,12 @@ const components: Components = {
  */
 export function MissingPage({
   docRef,
+  nodeId,
   onOpenInArchitecture,
   sourceUrl,
-}: Pick<MarkdownPageProps, 'docRef' | 'onOpenInArchitecture' | 'sourceUrl'>) {
+}: Pick<MarkdownPageProps, 'docRef' | 'nodeId' | 'onOpenInArchitecture' | 'sourceUrl'>) {
   const [copied, setCopied] = useState(false)
 
-  const nodeId = docRefToNodeId(docRef)
   const canOpen = Boolean(nodeId && onOpenInArchitecture)
 
   const copySourceLink = async () => {
@@ -182,6 +184,7 @@ export function MissingPage({
  */
 export function MarkdownPage({
   docRef,
+  nodeId,
   page,
   onOpenInArchitecture,
   sourceUrl,
@@ -190,6 +193,7 @@ export function MarkdownPage({
     return (
       <MissingPage
         docRef={docRef}
+        nodeId={nodeId}
         onOpenInArchitecture={onOpenInArchitecture}
         sourceUrl={sourceUrl}
       />
@@ -210,14 +214,4 @@ export function MarkdownPage({
       </div>
     </article>
   )
-}
-
-/**
- * Derive the canvas node id from a doc ref. The App binds `onOpenInArchitecture`
- * already knowing the route's node; we pass the docRef (the only handle we hold)
- * so the button is never dead when a ref exists. Returns null only when there is
- * nothing to open, so the primary action collapses cleanly.
- */
-function docRefToNodeId(docRef?: string): string | null {
-  return docRef && docRef.trim() ? docRef : null
 }

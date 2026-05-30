@@ -1,6 +1,6 @@
 import { useReactFlow } from '@xyflow/react'
 import { Compass, Route as RouteIcon } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppHeader } from './components/AppHeader'
 import { Canvas } from './components/Canvas'
 import { ChangelogView } from './components/ChangelogView'
@@ -110,15 +110,20 @@ function Shell({ data }: { data: CartographData }) {
 
   const onFit = useCallback(() => fitView({ padding: 0.2, duration: 300 }), [fitView])
 
+  // Build the ⌘K index ONCE per dataset (CONTRACT §8), not on every navigation.
+  // The handlers change as route/selection state changes, so route them through a
+  // ref the index can call without being a useMemo dependency.
+  const actionsRef = useRef({ selectNode, selectEdge, openPage, setRoute })
+  actionsRef.current = { selectNode, selectEdge, openPage, setRoute }
   const searchIndex = useMemo(
     () =>
       buildSearchIndex(data, {
-        selectNode: (id) => selectNode(id),
-        selectEdge: (id) => selectEdge(id),
-        openPage: (page, node) => openPage(page, node),
-        openTour: (tourId) => setRoute({ kind: 'tour', tourId }),
+        selectNode: (id) => actionsRef.current.selectNode(id),
+        selectEdge: (id) => actionsRef.current.selectEdge(id),
+        openPage: (page, node) => actionsRef.current.openPage(page, node),
+        openTour: (tourId) => actionsRef.current.setRoute({ kind: 'tour', tourId }),
       }),
-    [data, selectNode, selectEdge, openPage],
+    [data],
   )
 
   // '?' opens the keyboard-help overlay (⌘K and ⌘B are owned by the palette / sidebar provider).
@@ -143,7 +148,9 @@ function Shell({ data }: { data: CartographData }) {
 
   return (
     <div className="flex h-full w-full flex-col" style={{ background: 'var(--canvas)' }}>
+      <a href="#sidebar" className="carto-skip">Skip to sidebar</a>
       <a href="#main" className="carto-skip">Skip to main</a>
+      <a href="#detail" className="carto-skip">Skip to detail</a>
       <AppHeader
         route={route}
         view={currentView}
@@ -217,7 +224,7 @@ function Main({
     const sourceUrl = route.node ? manifest.nodes[route.node]?.data.links?.[0]?.url : undefined
     return (
       <div className="h-full overflow-auto p-8">
-        <MarkdownPage docRef={route.page} page={page} onOpenInArchitecture={onOpenInArchitecture} sourceUrl={sourceUrl} />
+        <MarkdownPage docRef={route.page} nodeId={route.node} page={page} onOpenInArchitecture={onOpenInArchitecture} sourceUrl={sourceUrl} />
       </div>
     )
   }
