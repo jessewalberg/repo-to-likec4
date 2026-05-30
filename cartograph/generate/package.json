@@ -1,0 +1,11 @@
+{
+  "name": "@cartograph/generate",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cartograph manifest generator: recon a repo -> architecture.json + site.json (the contract the viewer renders). Pure TS, Node 24 native test runner + type stripping.",
+  "scripts": {
+    "test": "node --test",
+    "generate": "node generate.ts"
+  }
+}
