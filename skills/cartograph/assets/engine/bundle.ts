@@ -14,6 +14,7 @@ export interface CartographPayload {
   architecture: unknown
   site: unknown
   changelog: unknown
+  tours: unknown
   pages: Record<string, string>
 }
 
@@ -71,6 +72,7 @@ function main(): void {
     architecture: readJson(join(dataDir, 'architecture.json')),
     site: readJson(join(dataDir, 'site.json')),
     changelog: readJson(join(dataDir, 'changelog.json'), { schemaVersion: 1, entries: [] }),
+    tours: readJson(join(dataDir, 'tours.json'), { schemaVersion: 1, tours: [] }),
     pages: readPages(join(dataDir, 'pages'), dataDir),
   }
 

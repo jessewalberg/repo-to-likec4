@@ -15,6 +15,7 @@ function buildModulesTree(manifest: Manifest): NavEntry[] {
 
   for (const n of Object.values(manifest.nodes)) {
     if (!n.data.doc) continue
+    if (n.type === 'container') continue // containers aren't files; they don't belong in the Modules tree
     const path = String(n.data.metadata?.path ?? n.id)
     const segs = path.split('/')
     let cur = root
@@ -61,12 +62,22 @@ export function buildSite(manifest: Manifest): Site {
     ],
   }
 
+  const viewEntry = (v: { id: string; title: string }): NavEntry => ({ id: `view:${v.id}`, kind: 'view', label: v.title, viewId: v.id })
+  // Primary altitudes (Containers, Components) sit flat; per-directory drill-down
+  // views (ids like `components:lib`) nest under a "Components by area" group.
+  const primaryViews = manifest.views.filter((v) => !v.id.includes(':'))
+  const areaViews = manifest.views.filter((v) => v.id.includes(':'))
   const architecture: NavEntry = {
     id: 'architecture',
     kind: 'section',
     label: 'Architecture',
     icon: 'map',
-    children: manifest.views.map((v) => ({ id: `view:${v.id}`, kind: 'view' as const, label: v.title, viewId: v.id })),
+    children: [
+      ...primaryViews.map(viewEntry),
+      ...(areaViews.length > 0
+        ? [{ id: 'arch:by-area', kind: 'group' as const, label: 'Components by area', children: areaViews.map(viewEntry) }]
+        : []),
+    ],
   }
 
   const modules: NavEntry = {

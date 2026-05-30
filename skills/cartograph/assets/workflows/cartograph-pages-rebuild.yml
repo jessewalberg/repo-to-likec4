@@ -1,0 +1,57 @@
+# Cartograph → GitHub Pages (REBUILD-ON-PUSH variant, opt-in).
+#
+# Regenerates the architecture from source on every push so the diagram can never
+# drift from the code, then deploys. Use this INSTEAD of cartograph-pages.yml when
+# you want always-fresh docs and have vendored the engine into the repo.
+#
+# Setup:
+#   1) Vendor the engine:  cp -r <skill>/assets/engine cartograph/engine
+#      and the template:   cp <skill>/assets/viewer-template.html cartograph/engine/
+#   2) Settings → Pages → Source = "GitHub Actions".
+#
+# Recon/model/layout/validate are deterministic (no LLM), so CI rebuilds are cheap.
+# view-refine (--refine) is intentionally OFF here: it needs Claude auth and adds
+# per-push cost — keep prose authoring to a manual `/map` run (commit .cartograph),
+# or add Claude auth + a spend cap before enabling it (see references/publishing.md).
+name: Cartograph Pages (rebuild)
+
+on:
+  push:
+    branches: [main] # ← your default branch
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true # debounce: only the latest push deploys
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24" # native TS type-stripping; no build step
+      - run: npm install --prefix cartograph/engine # elkjs only
+      - name: Generate + bundle the viewer
+        run: |
+          node cartograph/engine/generate.ts \
+            --repo . --name "${{ github.repository }}" --ref "${{ github.ref_name }}" \
+            --out .cartograph
+          node cartograph/engine/bundle.ts \
+            --template cartograph/engine/viewer-template.html \
+            --data .cartograph --out cartograph-site/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: cartograph-site
+      - id: deploy
+        uses: actions/deploy-pages@v4

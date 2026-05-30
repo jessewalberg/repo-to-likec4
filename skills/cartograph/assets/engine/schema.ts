@@ -84,6 +84,26 @@ export interface Manifest {
   views: View[]
 }
 
+// ---- tours.json (learning) ----
+
+export interface TourStep {
+  /** The node to focus for this step (absent on an intro/outro step). */
+  nodeId?: string
+  title: string
+  body: string
+}
+
+export interface Tour {
+  id: string
+  title: string
+  steps: TourStep[]
+}
+
+export interface Tours {
+  schemaVersion: number
+  tours: Tour[]
+}
+
 // ---- merge engine (proven in spike/phase0) ----
 
 export interface MergeReport {

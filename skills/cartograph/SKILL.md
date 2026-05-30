@@ -62,10 +62,20 @@ node "$SKILL/assets/engine/generate.ts" \
   --out "$REPO/.cartograph"
 ```
 
-Writes `architecture.json`, `site.json`, `changelog.json` into `$REPO/.cartograph`.
-On re-runs over an existing `architecture.json` it **three-way merges** (human
-relabels / pins / positions / suppressions survive) and appends a changelog entry.
+Writes `architecture.json`, `site.json`, `changelog.json`, `tours.json` into
+`$REPO/.cartograph`. Recon walks JS/TS (precise) plus Python / Ruby / Go
+(`confidence:'inferred'`). The model is a **C4 ladder** — a Containers overview,
+the full Components view, and per-directory drill-downs — plus deterministic role
+**tours** (understand / fix-bug / add-feature). On re-runs over an existing
+`architecture.json` it **three-way merges** (human relabels / pins / positions /
+suppressions survive), **detects file renames/moves** (migrating edits via
+`idAliases`), places only new nodes (frozen layout), and appends a changelog entry.
 
+> **`--refine` (opt-in):** authors each node's summary + a `pages/**.md` doc page
+> from the manifest using the **`claude` CLI** (Haiku) — your existing Claude auth,
+> no API key. Without it, doc routes show a friendly "not written yet" launchpad.
+> Estimate the cost first: `node "$SKILL/assets/engine/cost.ts" --manifest "$REPO/.cartograph/architecture.json"`.
+>
 > If the repo was previously mapped by the **old `repo-to-likec4`** skill, generate
 > prints a migration notice; pass `--migrate` to remove the stale `likec4/` dir and
 > `likec4-pages.yml` (shared CI files are reported, never auto-deleted).
@@ -115,6 +125,8 @@ Pages.)
     architecture.json        #   the graph (nodes/edges/groups/views + merge bookkeeping)
     site.json                #   sidebar nav (Documentation / Architecture / Modules / Learning)
     changelog.json           #   what changed between runs (from the merge report)
+    tours.json               #   the three role tours (learning)
+    pages/**.md              #   doc pages (only with --refine; human-editable)
   cartograph-site/
     index.html               # the self-contained viewer (deploy target)
   .github/workflows/
@@ -134,9 +146,15 @@ Pages.)
 ## Notes
 
 - The viewer is **light-themed** (OKLCH) with a dark toggle; accessibility is
-  first-class (keyboard nav, ARIA graph semantics, WCAG-AA contrast).
-- The manifest is the source of truth; the viewer is a projection. Keep edits in
-  `architecture.json` (or via a future in-viewer write-back), never by editing the
-  built HTML.
-- See `references/publishing.md` for Pages enablement details, custom domains,
-  GitLab Pages, and the optional CI-rebuild-on-push variant.
+  first-class (keyboard nav + roving tabindex, ARIA graph semantics, WCAG-AA
+  contrast, ⌘K search, a `?` keymap, skip links).
+- **In-viewer editing parity:** users can drag-reposition, rename, pin, annotate,
+  and hide nodes right in the viewer (undo/redo). Those edits flip the field's
+  provenance to `human`; the **Export** button downloads an updated
+  `architecture.json`. Commit it to `.cartograph/` and the three-way merge
+  preserves the edits on the next `generate` — the round-trip that keeps the
+  diagram current without losing human intent. (Don't hand-edit the built HTML.)
+- The manifest is the source of truth; the viewer is a projection.
+- See `references/publishing.md` for Pages enablement, custom domains, GitLab
+  Pages, and the **opt-in CI-rebuild-on-push** variant
+  (`assets/workflows/cartograph-pages-rebuild.yml`) for always-fresh docs.

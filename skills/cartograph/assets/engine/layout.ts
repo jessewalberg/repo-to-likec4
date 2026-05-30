@@ -168,12 +168,66 @@ export function placeNewNodes(
   }
 }
 
+/**
+ * Place new children inside an existing lane: stack them at the lane's bottom-left
+ * (lane-LOCAL coords, below the lane's already-positioned children) and grow the
+ * lane box to contain them. Existing positions are untouched.
+ */
+export function placeNewInLane(
+  view: View,
+  laneId: string,
+  newIds: string[],
+  manifest: Manifest,
+  sizeOf: (id: string) => Size,
+  gap = 24,
+): void {
+  const lane = view.layout[laneId]
+  if (!lane) return
+  const left = 24
+  let maxBottom = 44 // lane header padding (matches the ELK top padding)
+  let maxRight = left
+  for (const id of view.nodeIds) {
+    if (manifest.nodes[id]?.parentId !== laneId || newIds.includes(id)) continue
+    const p = view.layout[id]
+    if (!p) continue
+    const { w, h } = sizeOf(id)
+    maxBottom = Math.max(maxBottom, p.y + (p.h ?? h))
+    maxRight = Math.max(maxRight, p.x + (p.w ?? w))
+  }
+  for (const id of newIds) {
+    if (view.layout[id]) continue
+    const { w, h } = sizeOf(id)
+    const y = maxBottom + gap
+    view.layout[id] = { x: left, y }
+    maxBottom = y + h
+    maxRight = Math.max(maxRight, left + w)
+  }
+  lane.w = Math.max(lane.w ?? 0, maxRight + 24)
+  lane.h = Math.max(lane.h ?? 0, maxBottom + 24)
+}
+
 /** Incrementally lay out only the nodes the merge reported as new, freezing the rest. */
 export function layoutNew(manifest: Manifest, newIds: string[]): void {
   const newSet = new Set(newIds)
   const sizeOf = (id: string): Size => ({ w: manifest.nodes[id]?.width ?? 220, h: manifest.nodes[id]?.height ?? 72 })
   for (const view of manifest.views) {
-    const viewNew = view.nodeIds.filter((id) => newSet.has(id))
-    if (viewNew.length) placeNewNodes(view, viewNew, sizeOf)
+    const viewNew = view.nodeIds.filter((id) => newSet.has(id) && !view.layout[id])
+    if (viewNew.length === 0) continue
+    // A new node whose parent lane is already laid out nests inside that lane;
+    // everything else (ungrouped, or a brand-new lane) drops below the content.
+    const rootNew: string[] = []
+    const byLane = new Map<string, string[]>()
+    for (const id of viewNew) {
+      const parentId = manifest.nodes[id]?.parentId
+      if (parentId && view.layout[parentId]) {
+        const bucket = byLane.get(parentId)
+        if (bucket) bucket.push(id)
+        else byLane.set(parentId, [id])
+      } else {
+        rootNew.push(id)
+      }
+    }
+    for (const [laneId, ids] of byLane) placeNewInLane(view, laneId, ids, manifest, sizeOf)
+    if (rootNew.length) placeNewNodes(view, rootNew, sizeOf)
   }
 }
