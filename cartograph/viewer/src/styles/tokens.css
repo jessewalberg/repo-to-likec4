@@ -1,0 +1,254 @@
+/* ============================================================================
+   Cartograph — Design Tokens (LIGHT mode) — FINAL
+   OKLCH source of truth. Near-white cool canvas. WCAG AA verified.
+   Elevation via hairline + soft shadow (NOT luminance). Drives all --xy-* vars.
+   NOTE: the --xy-* mapping lives under `.react-flow` (NOT :root) so it beats
+   base.css's own `.react-flow { --xy-...-default }` defaults (same selector,
+   later in the cascade). Semantic tokens stay on :root and inherit in.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* --- Canvas ----------------------------------------------------------- */
+  --canvas:            oklch(0.985 0.004 240);
+  --canvas-sunken:     oklch(0.975 0.005 240);
+
+  /* --- 4 elevation tiers (lighter toward viewer; separation = border+shadow) */
+  --elev-canvas:       var(--canvas);
+  --elev-card:         oklch(0.995 0.002 240);
+  --elev-hover:        oklch(1.000 0.000 0);
+  --elev-panel:        oklch(0.998 0.0015 240);
+  --elev-card-border:  var(--hairline);
+  --elev-hover-border: var(--n-200);
+  --elev-panel-border: var(--n-150);
+  --elev-card-shadow:  var(--shadow-1);
+  --elev-hover-shadow: var(--shadow-2);
+  --elev-panel-shadow: var(--shadow-2);
+
+  /* --- Hairline + dividers ---------------------------------------------- */
+  --hairline:          oklch(0.900 0.006 250);
+  --divider:           oklch(0.925 0.005 250);
+
+  /* --- Neutral ramp (cool gray, hue ~250) ------------------------------- */
+  --n-50:              oklch(0.985 0.003 250);
+  --n-100:             oklch(0.965 0.004 250);
+  --n-150:             oklch(0.945 0.005 250);
+  --n-200:             oklch(0.920 0.006 250);
+  --n-300:             oklch(0.870 0.008 250);
+  --n-400:             oklch(0.740 0.010 250);   /* decorative/placeholder only */
+  --n-500:             oklch(0.560 0.012 250);   /* edges/icons; >=3:1 vs canvas, also text-subtle >=4.5:1 */
+  --n-600:             oklch(0.500 0.012 250);
+  --n-700:             oklch(0.440 0.012 250);   /* secondary text AA */
+  --n-800:             oklch(0.350 0.012 250);
+  --n-900:             oklch(0.270 0.012 250);   /* body text */
+
+  /* Text role aliases */
+  --text-strong:       var(--n-900);
+  --text:              var(--n-800);
+  --text-muted:        var(--n-700);
+  --text-subtle:       var(--n-500);             /* darkened so eyebrows/meta hit 4.5:1 */
+  --text-on-accent:    oklch(0.985 0 0);
+
+  /* --- 6 semantic hues: {bg, border, fg, stripe} ------------------------ */
+  --service-bg:        oklch(0.965 0.030 162);
+  --service-border:    oklch(0.830 0.060 162);
+  --service-fg:        oklch(0.460 0.115 162);
+  --service-stripe:    oklch(0.620 0.135 162);
+  --frontend-bg:       oklch(0.964 0.034 210);
+  --frontend-border:   oklch(0.830 0.065 215);
+  --frontend-fg:       oklch(0.460 0.105 225);
+  --frontend-stripe:   oklch(0.620 0.115 225);
+  --datastore-bg:      oklch(0.964 0.030 292);
+  --datastore-border:  oklch(0.840 0.060 292);
+  --datastore-fg:      oklch(0.470 0.150 292);
+  --datastore-stripe:  oklch(0.580 0.165 292);
+  --infra-bg:          oklch(0.967 0.040 82);
+  --infra-border:      oklch(0.840 0.075 80);
+  --infra-fg:          oklch(0.500 0.110 67);
+  --infra-stripe:      oklch(0.640 0.135 72);
+  --external-bg:       oklch(0.964 0.012 250);   /* the fixture's component kind */
+  --external-border:   oklch(0.850 0.022 250);
+  --external-fg:       oklch(0.450 0.030 250);
+  --external-stripe:   oklch(0.560 0.030 250);   /* darkened to >=3:1 vs canvas */
+  --queue-bg:          oklch(0.965 0.030 12);
+  --queue-border:      oklch(0.830 0.075 15);
+  --queue-fg:          oklch(0.510 0.180 18);
+  --queue-stripe:      oklch(0.620 0.190 15);
+
+  /* Status aliases */
+  --ok-fg:             var(--service-fg);
+  --warn-fg:           var(--infra-fg);
+  --danger-fg:         var(--queue-fg);
+  --info-fg:           var(--frontend-fg);
+
+  /* --- 2 ZONE accents (lane wayfinding; low chroma, NOT node-kind hues) -- */
+  --zone-a:            oklch(0.560 0.050 200);   /* Root — teal-slate, >=3:1 */
+  --zone-a-wash:       oklch(0.970 0.012 200 / 0.5);
+  --zone-b:            oklch(0.540 0.050 275);   /* lib  — indigo-slate, >=3:1 */
+  --zone-b-wash:       oklch(0.970 0.012 275 / 0.5);
+
+  /* --- Type scale (1.20 minor-third, 16px base) ------------------------- */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code",
+               Menlo, Consolas, monospace;
+  --fs-xs:    0.694rem;  --fs-sm:   0.833rem;  --fs-base: 1.000rem;
+  --fs-md:    1.200rem;  --fs-lg:   1.440rem;  --fs-xl:   1.728rem;  --fs-2xl: 2.074rem;
+  --lh-tight: 1.2; --lh-snug: 1.35; --lh-base: 1.55;
+  --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
+  --tracking-tight: -0.011em; --tracking-wide: 0.04em;
+
+  /* --- Radii ------------------------------------------------------------ */
+  --r-sm: 4px; --r-md: 7px; --r-lg: 12px; --r-pill: 999px;
+
+  /* --- Shadows (the LIGHT depth cue; ONLY on floating objects) ---------- */
+  --shadow-1:
+    0 1px 1px oklch(0.55 0.02 250 / 0.04),
+    0 1px 3px oklch(0.55 0.02 250 / 0.06);
+  --shadow-2:
+    0 2px 4px  oklch(0.55 0.02 250 / 0.06),
+    0 8px 20px oklch(0.50 0.03 250 / 0.10);
+
+  /* --- Focus ring (>=3:1 vs canvas) ------------------------------------- */
+  --focus-ring-color: oklch(0.580 0.150 250);
+  --focus-ring:       0 0 0 2px var(--canvas),
+                      0 0 0 4px var(--focus-ring-color);
+
+  /* --- Spacing (4px grid) ----------------------------------------------- */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-8: 48px;
+
+  /* Custom edge stroke aliases (read by edge components AND the Legend). */
+  --carto-edge-sync:  var(--n-500);
+  --carto-edge-data:  var(--datastore-stripe);
+  --carto-edge-async: var(--queue-stripe);
+}
+
+/* ============================================================================
+   @xyflow/react v12 mapping — under .react-flow so it beats base.css.
+   ========================================================================== */
+.react-flow {
+  --xy-background-color-default:          var(--canvas);
+  --xy-background-pattern-color-default:  var(--n-300);
+
+  --xy-node-background-color-default:        var(--elev-card);
+  --xy-node-color-default:                   var(--text);
+  --xy-node-border-default:                  1px solid var(--hairline);
+  --xy-node-border-radius-default:           var(--r-md);
+  --xy-node-group-background-color-default:  oklch(0.97 0.004 250 / 0.5); /* lane wash */
+  --xy-node-boxshadow-hover-default:         var(--shadow-2);
+  --xy-node-boxshadow-selected-default:
+    0 0 0 1.5px var(--focus-ring-color), var(--shadow-2);
+
+  /* Edges — rest stroke is --n-500 (>=3:1, WCAG 1.4.11), not --n-400 */
+  --xy-edge-stroke-default:           var(--n-500);
+  --xy-edge-stroke-width-default:     1.5;
+  --xy-edge-stroke-selected-default:  var(--focus-ring-color);
+  --xy-edge-label-background-color-default: var(--elev-panel);
+  --xy-edge-label-color-default:            var(--text-muted);
+
+  --xy-handle-background-color-default:  var(--elev-card);
+  --xy-handle-border-color-default:      var(--n-500);
+
+  --xy-selection-background-color-default: oklch(0.58 0.15 250 / 0.06);
+  --xy-selection-border-default:           1px dotted var(--focus-ring-color);
+
+  --xy-controls-button-background-color-default:        var(--elev-panel);
+  --xy-controls-button-background-color-hover-default:  var(--n-100);
+  --xy-controls-button-color-default:                   var(--text-muted);
+  --xy-controls-button-color-hover-default:             var(--text-strong);
+  --xy-controls-button-border-color-default:            var(--hairline);
+  --xy-controls-box-shadow-default:                     var(--shadow-2);
+
+  --xy-minimap-background-color-default:      var(--elev-panel);
+  --xy-minimap-mask-background-color-default: oklch(0.92 0.005 250 / 0.6);
+  --xy-attribution-background-color-default:  oklch(1 0 0 / 0.6);
+}
+
+/* ============================================================================
+   Per-kind node accents — applied via [data-kind] on the node DOM.
+   ========================================================================== */
+[data-kind="service"]   { --kind-bg: var(--service-bg);   --kind-border: var(--service-border);   --kind-fg: var(--service-fg);   --kind-stripe: var(--service-stripe);   }
+[data-kind="frontend"]  { --kind-bg: var(--frontend-bg);  --kind-border: var(--frontend-border);  --kind-fg: var(--frontend-fg);  --kind-stripe: var(--frontend-stripe);  }
+[data-kind="datastore"] { --kind-bg: var(--datastore-bg); --kind-border: var(--datastore-border); --kind-fg: var(--datastore-fg); --kind-stripe: var(--datastore-stripe); }
+[data-kind="infra"]     { --kind-bg: var(--infra-bg);     --kind-border: var(--infra-border);     --kind-fg: var(--infra-fg);     --kind-stripe: var(--infra-stripe);     }
+[data-kind="external"]  { --kind-bg: var(--external-bg);  --kind-border: var(--external-border);  --kind-fg: var(--external-fg);  --kind-stripe: var(--external-stripe);  }
+[data-kind="queue"]     { --kind-bg: var(--queue-bg);     --kind-border: var(--queue-border);     --kind-fg: var(--queue-fg);     --kind-stripe: var(--queue-stripe);     }
+
+/* Per-zone lane accents — applied via [data-zone] on the lane DOM. */
+[data-zone="a"] { --zone: var(--zone-a); --zone-wash: var(--zone-a-wash); }
+[data-zone="b"] { --zone: var(--zone-b); --zone-wash: var(--zone-b-wash); }
+
+/* ============================================================================
+   Tailwind v4 @theme bridge so utility classes resolve our tokens.
+   ========================================================================== */
+@theme inline {
+  --color-canvas:          var(--canvas);
+  --color-fg:              var(--text-strong);
+  --color-muted-fg:        var(--text-muted);
+  --color-subtle:          var(--text-subtle);
+  --color-border:          var(--hairline);
+  --color-divider:         var(--divider);
+  --color-accent:          var(--focus-ring-color);
+  --color-code-bg:         var(--canvas-sunken);
+  --color-sidebar:         var(--canvas);
+  --color-sidebar-accent:  var(--n-100);
+  --color-sidebar-ring:    var(--focus-ring-color);
+  --color-popover:         var(--elev-panel);
+}
+
+/* Async edge marching dash (variant 3) — gated by reduced-motion below. */
+.carto-edge--async { animation: carto-dash 1.2s linear infinite; }
+@keyframes carto-dash { to { stroke-dashoffset: -12; } }
+
+/* Reduced-motion: remove easing only. Information-bearing state changes still
+   apply (driven by JS, instant). */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .carto-edge--async,
+  .react-flow__edge-path { animation: none !important; }
+}
+
+/* ============================================================================
+   [data-theme=dark] — wired headroom (sidebar footer toggle). LIGHT is the contract.
+   ========================================================================== */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas:        oklch(0.205 0.012 250);
+  --canvas-sunken: oklch(0.180 0.012 250);
+  --elev-card:   oklch(0.255 0.013 250);
+  --elev-hover:  oklch(0.290 0.014 250);
+  --elev-panel:  oklch(0.235 0.013 250);
+  --hairline: oklch(0.330 0.012 250 / 0.9);
+  --divider:  oklch(0.300 0.010 250 / 0.8);
+  --n-50:  oklch(0.965 0.004 250); --n-100: oklch(0.920 0.005 250);
+  --n-150: oklch(0.860 0.006 250); --n-200: oklch(0.780 0.008 250);
+  --n-300: oklch(0.680 0.010 250); --n-400: oklch(0.560 0.012 250);
+  --n-500: oklch(0.700 0.012 250); --n-600: oklch(0.760 0.011 250);
+  --n-700: oklch(0.820 0.010 250); --n-800: oklch(0.900 0.008 250);
+  --n-900: oklch(0.965 0.005 250);
+  --text-on-accent: oklch(0.18 0.01 250);
+  --service-bg:   oklch(0.30 0.045 162);  --service-border:  oklch(0.42 0.070 162);  --service-fg:  oklch(0.84 0.130 162);  --service-stripe:  oklch(0.78 0.150 162);
+  --frontend-bg:  oklch(0.30 0.045 220);  --frontend-border: oklch(0.42 0.070 220);  --frontend-fg: oklch(0.85 0.110 215);  --frontend-stripe: oklch(0.78 0.130 215);
+  --datastore-bg: oklch(0.30 0.055 292);  --datastore-border:oklch(0.42 0.080 292);  --datastore-fg:oklch(0.84 0.130 292);  --datastore-stripe:oklch(0.76 0.160 292);
+  --infra-bg:     oklch(0.31 0.050 80);   --infra-border:    oklch(0.44 0.080 80);   --infra-fg:    oklch(0.86 0.120 82);   --infra-stripe:    oklch(0.80 0.140 80);
+  --external-bg:  oklch(0.30 0.018 250);  --external-border: oklch(0.42 0.025 250);  --external-fg: oklch(0.84 0.030 250);  --external-stripe: oklch(0.74 0.035 250);
+  --queue-bg:     oklch(0.31 0.060 14);   --queue-border:    oklch(0.44 0.090 14);   --queue-fg:    oklch(0.82 0.150 16);   --queue-stripe:    oklch(0.74 0.180 15);
+  --zone-a: oklch(0.72 0.060 200); --zone-a-wash: oklch(0.27 0.020 200 / 0.5);
+  --zone-b: oklch(0.70 0.060 275); --zone-b-wash: oklch(0.27 0.020 275 / 0.5);
+  --shadow-1: 0 1px 2px oklch(0 0 0 / 0.30);
+  --shadow-2: 0 4px 16px oklch(0 0 0 / 0.45);
+  --focus-ring-color: oklch(0.720 0.140 250);
+  --focus-ring: 0 0 0 2px var(--canvas), 0 0 0 4px var(--focus-ring-color);
+}
+[data-theme="dark"] .react-flow {
+  --xy-background-pattern-color-default:    var(--n-400);
+  --xy-node-group-background-color-default: oklch(0.26 0.012 250 / 0.5);
+  --xy-attribution-background-color-default: oklch(0 0 0 / 0.4);
+  --xy-minimap-mask-background-color-default: oklch(0.15 0.01 250 / 0.6);
+}

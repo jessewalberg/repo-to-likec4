@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.log
+.build/
+public/architecture.json
+public/site.json
+public/changelog.json

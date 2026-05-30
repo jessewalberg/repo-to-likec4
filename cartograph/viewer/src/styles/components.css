@@ -1,0 +1,2904 @@
+/* ============================================================================
+   Component-scoped CSS for the Cartograph viewer.
+   Each component owns a unique class prefix (.carto-card__*, .carto-lane__*, …)
+   so blocks never collide. Build agents append their block here; tokens come
+   from styles/tokens.css.
+   ========================================================================== */
+
+/* App shell structural safety. */
+.react-flow { height: 100%; }
+
+/* Skip link (a11y): off-screen until focused. */
+.carto-skip {
+  position: absolute;
+  left: 8px;
+  top: -48px;
+  z-index: 50;
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  background: var(--elev-panel);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-2);
+  transition: top 120ms ease;
+}
+.carto-skip:focus-visible { top: 8px; outline: none; box-shadow: var(--focus-ring); }
+
+/* ===== src/components/EmptyState.tsx ===== */
+/* EmptyState — shared empty-state template (CONTRACT §11).
+   Scoped under .carto-empty so blocks never collide with other components.
+   Tokens are global; nothing redeclared here. */
+
+.carto-empty {
+  /* Keep the card readable on very short panes without clipping its shadow. */
+  max-height: 100%;
+}
+
+/* Line-art glyph sizing: the caller passes a lucide icon; constrain it to a
+   calm display size regardless of the icon's intrinsic size prop. */
+.carto-empty__glyph > svg {
+  width: 40px;
+  height: 40px;
+  stroke-width: 1.5;
+}
+
+/* Ghost-link exits in the actions row get the shared affordance treatment so
+   every caller's exits look and focus the same. Callers still pass their own
+   primary (filled) buttons; these rules only style ghost links/buttons that
+   opt in by carrying [data-empty-action] (or a bare <a>/<button> with the
+   .carto-empty__link class). Focus-visible always shows the --focus-ring,
+   never removed without replacement (CONTRACT §9). */
+.carto-empty__actions a,
+.carto-empty__actions button {
+  border-radius: var(--r-sm);
+  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+.carto-empty__actions a:focus-visible,
+.carto-empty__actions button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Reduced motion: information-bearing state changes are already instant here
+   (no transform/opacity reveals); only the cosmetic hover/focus easing is
+   neutralized, matching the global token-sheet rule. */
+@media (prefers-reduced-motion: reduce) {
+  .carto-empty__actions a,
+  .carto-empty__actions button {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* ===== src/components/NodeCard.tsx ===== */
+/* ============================================================================
+   NodeCard (RF nodeType 'card') — CONTRACT §3. Unique prefix .carto-card__*.
+   Token colour comes from [data-kind] on the root (--kind-bg/-border/-fg/-stripe);
+   never hard-code a hue. base.css does not skin custom 'card' nodes, so .carto-card
+   owns every visual. Reduced-motion is handled globally in tokens.css.
+   ========================================================================== */
+
+/* Strip RF wrapper affordances so our surface is the only chrome. */
+.react-flow__node-card { outline: none; }
+.react-flow__node-card:focus,
+.react-flow__node-card:focus-visible { outline: none; }
+
+.carto-card {
+  position: relative;
+  width: 220px;
+  height: 72px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: var(--elev-card);
+  border: 1px solid color-mix(in oklch, var(--kind-border) 40%, transparent);
+  box-shadow: var(--shadow-1);
+  color: var(--text);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 120ms ease, box-shadow 120ms ease,
+    background-color 120ms ease, border-color 120ms ease;
+}
+
+/* Muted (confidence === 'unknown'): kind colour removed, neutral fallback.
+   No data-kind attribute is set, so --kind-* are undefined — pin literals. */
+.carto-card[data-muted="true"] {
+  border-color: var(--hairline);
+}
+
+/* (2) kind stripe — 6px, full height, --kind-stripe. */
+.carto-card__stripe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--kind-stripe);
+  transition: width 120ms ease, background-color 120ms ease, opacity 140ms ease;
+}
+.carto-card[data-muted="true"] .carto-card__stripe {
+  background: var(--n-300);
+}
+
+/* Inner content sits to the right of the stripe. */
+.carto-card__inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3) var(--sp-2) calc(6px + var(--sp-3));
+}
+
+/* (3) role glyph — 22px square, kind-bg tint, kind-fg icon. */
+.carto-card__glyph {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-sm);
+  background: var(--kind-bg);
+  color: var(--kind-fg);
+  border: 1px solid color-mix(in oklch, var(--kind-border) 40%, transparent);
+  transition: opacity 140ms ease;
+}
+.carto-card[data-muted="true"] .carto-card__glyph {
+  background: var(--n-100);
+  color: var(--text-muted);
+  border-color: var(--hairline);
+}
+
+.carto-card__text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0; /* enables child ellipsis */
+  flex: 1 1 auto;
+}
+
+/* (4) label — 14px semibold, single-line ellipsis. */
+.carto-card__label {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-tight);
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.carto-card[data-muted="true"] .carto-card__label {
+  color: var(--text-muted);
+}
+
+/* (5) meta row — mono tech tag + summary|crumb. Single line, ellipsis. */
+.carto-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0;
+  font-size: var(--fs-xs);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.carto-card__tech {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: var(--fw-medium);
+  color: var(--kind-fg);
+  background: var(--canvas-sunken);
+  padding: 2px 5px;
+  border-radius: var(--r-sm);
+  transition: opacity 140ms ease;
+}
+.carto-card[data-muted="true"] .carto-card__tech {
+  color: var(--text-muted);
+}
+.carto-card__sub {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  color: var(--text-subtle);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.carto-card__dot { color: var(--n-300); }
+
+/* muted '?' chip */
+.carto-card__muted-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--r-pill);
+  background: var(--n-100);
+  color: var(--text-muted);
+}
+
+/* (6) Source affordance — top-right, hidden at rest. */
+.carto-card__source {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  background: color-mix(in oklch, var(--elev-card) 80%, transparent);
+  opacity: 0;
+  transform: translateY(-1px);
+  transition: opacity 100ms ease, transform 100ms ease, color 100ms ease,
+    background-color 100ms ease;
+  pointer-events: none;
+}
+.carto-card__source:hover { color: var(--text-strong); background: var(--n-100); }
+/* Reveal Source on card hover OR keyboard focus-visible (a11y parity). */
+.carto-card:hover .carto-card__source,
+.carto-card:focus-within .carto-card__source,
+.carto-card[data-selected="true"] .carto-card__source {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+/* The Source link keeps its own focus ring (never removed). */
+.carto-card__source:focus-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Pinned amber pin — top-right, exempt from the dim sweep (§3/§12). */
+.carto-card__pin {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--infra-stripe); /* amber from the token sheet */
+}
+/* When both pin and source exist, nudge the source left of the pin. */
+.carto-card__pin ~ .carto-card__source,
+.carto-card:has(.carto-card__pin) .carto-card__source { right: 26px; }
+
+/* Handles — 6px, hidden at rest, fade in on hover / focus-visible. */
+.carto-card__handle.react-flow__handle {
+  width: 6px;
+  height: 6px;
+  min-width: 6px;
+  min-height: 6px;
+  border-radius: var(--r-sm);
+  background: var(--elev-card);
+  border: 1px solid var(--n-500);
+  opacity: 0;
+  transition: opacity 100ms ease;
+}
+.carto-card:hover .carto-card__handle.react-flow__handle,
+.carto-card:focus-within .carto-card__handle.react-flow__handle,
+.carto-card[data-selected="true"] .carto-card__handle.react-flow__handle {
+  opacity: 1;
+}
+
+/* ---- States ------------------------------------------------------------ */
+
+/* Hover — elevated surface, full kind border, shadow-2, lift 1px. */
+.carto-card:hover {
+  background: var(--elev-hover);
+  border-color: var(--kind-border);
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}
+.carto-card[data-muted="true"]:hover { border-color: var(--n-200); }
+
+/* Focused (keyboard) — double focus ring, NO translate, affordances reveal. */
+.carto-card:focus-visible,
+.carto-card:focus-within:not(:hover) {
+  outline: none;
+}
+.carto-card:focus-visible {
+  box-shadow: var(--focus-ring);
+  transform: none;
+}
+
+/* Selected — brand ring + shadow-2, stripe widens 6 -> 8px. */
+.carto-card[data-selected="true"] {
+  box-shadow: var(--xy-node-boxshadow-selected-default);
+  border-color: var(--kind-border);
+}
+.carto-card[data-selected="true"] .carto-card__stripe { width: 8px; }
+.carto-card[data-selected="true"] .carto-card__inner {
+  padding-left: calc(8px + var(--sp-3));
+}
+
+/* Dimmed (neighbor de-emphasis) — chrome fades to ~0.45, but TEXT is carved
+   back out to stay >= AA (§3/§10). CRITICAL: ancestor `opacity` forms a group
+   children cannot escape, so we do NOT dim the root container. Instead we fade
+   the CHROME layers individually (surface, stripe, glyph) and leave the text /
+   pin / source at full opacity, downshifting label colour only as needed. */
+.carto-card[data-dimmed="true"] {
+  background: color-mix(in oklch, var(--elev-card) 60%, var(--canvas));
+  border-color: color-mix(in oklch, var(--kind-border) 18%, transparent);
+  box-shadow: none;
+}
+.carto-card[data-dimmed="true"] .carto-card__stripe { opacity: 0.45; }
+.carto-card[data-dimmed="true"] .carto-card__glyph { opacity: 0.5; }
+.carto-card[data-dimmed="true"] .carto-card__tech { opacity: 0.7; }
+/* Text stays fully opaque and AA-legible (label --text, sub --text-muted). */
+.carto-card[data-dimmed="true"] .carto-card__label { color: var(--text); }
+.carto-card[data-dimmed="true"] .carto-card__sub { color: var(--text-muted); }
+/* A dimmed-but-focused/hovered/selected card returns to full presence (intent). */
+.carto-card[data-dimmed="true"]:hover,
+.carto-card[data-dimmed="true"]:focus-within,
+.carto-card[data-dimmed="true"][data-selected="true"] {
+  background: var(--elev-card);
+  border-color: var(--kind-border);
+}
+.carto-card[data-dimmed="true"]:hover { background: var(--elev-hover); box-shadow: var(--shadow-2); }
+.carto-card[data-dimmed="true"]:hover .carto-card__stripe,
+.carto-card[data-dimmed="true"]:focus-within .carto-card__stripe,
+.carto-card[data-dimmed="true"][data-selected="true"] .carto-card__stripe,
+.carto-card[data-dimmed="true"]:hover .carto-card__glyph,
+.carto-card[data-dimmed="true"]:focus-within .carto-card__glyph,
+.carto-card[data-dimmed="true"][data-selected="true"] .carto-card__glyph,
+.carto-card[data-dimmed="true"]:hover .carto-card__tech,
+.carto-card[data-dimmed="true"]:focus-within .carto-card__tech,
+.carto-card[data-dimmed="true"][data-selected="true"] .carto-card__tech { opacity: 1; }
+
+/* ===== src/components/LaneNode.tsx ===== */
+/* ============================================================================
+   LaneNode — scoped (.carto-lane*). Floating eyebrow header over a zone wash.
+   Tokens are global (tokens.css); do not redeclare them here.
+   ========================================================================== */
+.carto-lane {
+  position: relative;
+  box-sizing: border-box;
+  overflow: visible; /* header tab floats just above the wash edge */
+}
+
+/* Collapsed lanes shrink to a 36px rail (height is also clamped by RF node size). */
+.carto-lane[data-collapsed='true'] {
+  height: 36px;
+  overflow: hidden;
+}
+
+/* Floating top-left eyebrow header — a real button, NO fill. */
+.carto-lane__header {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 4px 6px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-sm);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  z-index: 1;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 3px x 16px territory tick in the zone accent (the wayfinding cue). */
+.carto-lane__tick {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 16px;
+  border-radius: var(--r-pill);
+  background: var(--zone);
+}
+
+/* The one typographic eyebrow rhyme: UPPERCASE, xs, semibold, wide, subtle. */
+.carto-lane__eyebrow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  white-space: nowrap;
+}
+
+.carto-lane__label {
+  color: var(--text-subtle);
+}
+
+/* Disambiguating descriptor suffix + count sit at the same subtle weight. */
+.carto-lane__descriptor,
+.carto-lane__count,
+.carto-lane__sep {
+  color: var(--text-subtle);
+  font-weight: var(--fw-medium);
+}
+
+.carto-lane__sep {
+  opacity: 0.7;
+}
+
+/* Focus-visible affordance: the locked focus ring, never removed (a11y §9). */
+.carto-lane__header:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Hover lifts the header's contrast a touch so the toggle reads as interactive. */
+.carto-lane__header:hover .carto-lane__label,
+.carto-lane__header:hover .carto-lane__descriptor,
+.carto-lane__header:hover .carto-lane__count {
+  color: var(--text-muted);
+}
+
+/* ===== src/components/edges/DataEdge.tsx ===== */
+/* ── DataEdge (CONTRACT §6 variant 2) ─────────────────────────────────────────
+   Stroke colour/width/opacity are information-bearing and set inline in JS so
+   they apply instantly (reduced-motion safe). Only the non-information hover
+   affordance — a soft brighten + halo + arrowhead bump — lives here, gated to
+   pointer hover; keyboard selection already drives the focus-ring colour via
+   the `selected` flag. Class prefix `.carto-edge-data` is unique to this file. */
+
+.carto-edge-data .react-flow__edge-path {
+  transition: stroke 120ms ease, stroke-width 120ms ease, opacity 140ms ease,
+    filter 120ms ease;
+}
+
+/* Hover on the edge group (the wide interaction path makes this easy to hit):
+   lift toward the muted ink, thicken 1.75 → 2, and add a 4px translucent halo. */
+.carto-edge-data:hover .react-flow__edge-path {
+  stroke: var(--text-muted);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 4px color-mix(in oklch, var(--carto-edge-data) 45%, transparent));
+}
+
+/* Incident edges (lit by the neighbor-fan) keep their variant hue but read as
+   load-bearing: 2px is already applied inline; add the same halo for parity. */
+.carto-edge-data[data-incident] .react-flow__edge-path {
+  filter: drop-shadow(0 0 3px color-mix(in oklch, var(--carto-edge-data) 35%, transparent));
+}
+
+/* Reduced motion: kill the easing; the end-state (colour/width/opacity) still
+   applies because it is set inline on the path. */
+@media (prefers-reduced-motion: reduce) {
+  .carto-edge-data .react-flow__edge-path {
+    transition: none;
+  }
+}
+
+/* ===== src/components/edges/AsyncEdge.tsx ===== */
+/* ── Edge variant 3 · Async / event ──────────────────────────────────────────
+   The marching-dash animation + its reduced-motion gate live in tokens.css
+   (`.carto-edge--async`); these blocks only add the path/dot styling unique to
+   this variant. Unique `.carto-edge-async__*` prefix so nothing collides. */
+
+.carto-edge-async__path {
+  /* Round dash caps read as "soft/async" vs. the crisp solid sync route, and
+     keep the dash legible when the animation is removed under reduced motion. */
+  stroke-linecap: round;
+  transition: stroke-width 120ms ease, opacity 140ms ease;
+}
+
+/* Mid-path rose marker — the color-independent reinforcement of "async". */
+.carto-edge-async__dot {
+  fill: var(--carto-edge-async);
+  stroke: var(--elev-panel);
+  stroke-width: 1.5;
+  transition: r 120ms ease;
+}
+
+/* Information-bearing state changes happen instantly regardless of motion
+   prefs; we only ever animate transform/opacity/width, so reduced motion just
+   collapses the easing (handled globally by the tokens.css media block). */
+@media (prefers-reduced-motion: reduce) {
+  .carto-edge-async__path,
+  .carto-edge-async__dot {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* ===== src/components/Canvas.tsx ===== */
+/* ============================================================================
+   Canvas — scoped container, empty state, and the sr-only live region.
+   Node/edge/handle visual states live in their own component CSS. The
+   --xy-* tokens (tokens.css) own React Flow's chrome; we only own layout here.
+   ========================================================================== */
+
+.carto-canvas__root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--canvas);
+}
+
+/* React Flow fills the container; tokens drive every visual surface. */
+.carto-canvas__root .react-flow {
+  width: 100%;
+  height: 100%;
+}
+
+/* Floating chrome (Controls + MiniMap) earns shadow — it floats above the
+   field (CONTRACT §1: elevation = meaning). Radius matches panels (--r-lg). */
+.carto-canvas__root .react-flow__controls,
+.carto-canvas__root .react-flow__minimap {
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+}
+
+/* Keyboard focus on a node is visible via the locked focus ring (§9/§10).
+   Never strip the outline without replacing it. */
+.carto-canvas__root .react-flow__node:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--r-md);
+}
+
+/* Empty-view affordance — centered, calm, no fake nodes (CONTRACT §11). */
+.carto-canvas__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  pointer-events: none;
+  text-align: center;
+}
+
+.carto-canvas__empty-title {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-strong);
+}
+
+.carto-canvas__empty-body {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* Visually-hidden polite live region (aria-live) — never collapses layout. */
+.carto-canvas__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ===== src/components/ui/leanCollapsible.tsx ===== */
+/* ============================================================================
+   leanCollapsible — native <details>/<summary> disclosure (CONTRACT §7/§9).
+   Scoped under .carto-collapsible__* so blocks never collide. Tokens are global.
+   ========================================================================== */
+
+/* Trigger = <summary>: drop the native disclosure marker so NavTree owns its own
+   chevron glyph (and the row never shows a stray browser triangle). */
+.carto-collapsible__trigger {
+  list-style: none;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.carto-collapsible__trigger::-webkit-details-marker { display: none; }
+.carto-collapsible__trigger::marker { content: ""; }
+
+/* CONTRACT §9: a visible --focus-ring on every focusable; never remove an
+   outline without replacing it. The summary is keyboard-focusable for free. */
+.carto-collapsible__trigger:focus { outline: none; }
+.carto-collapsible__trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--r-sm);
+}
+
+/* Reveal is instant (information-bearing) — no height tween. The content slot is
+   a plain block; consumers add layout via Tailwind utilities on className. */
+.carto-collapsible__content { display: block; }
+
+/* ===== src/components/ui/leanSidebar.tsx ===== */
+/* ============================================================================
+   leanSidebar — scoped state + resize-handle CSS. Prefix: .carto-sb__
+   Tokens are global; do not redeclare. CONTRACT §2/§7/§9/§10.
+   ========================================================================== */
+
+.carto-sb__provider {
+  display: contents;
+}
+
+/* The aside shell: flat (NO shadow), width animates open<->rail. */
+.carto-sb__aside {
+  transition: width 140ms ease;
+}
+
+/* Pointer-drag handle on the right edge (220–360px). 6px hot zone, hairline rule. */
+.carto-sb__resize {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  bottom: 0;
+  width: 6px;
+  z-index: 5;
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+}
+.carto-sb__resize::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 1px;
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+.carto-sb__resize:hover::after,
+.carto-sb__resize:focus-visible::after {
+  background: var(--focus-ring-color);
+}
+.carto-sb__resize:focus-visible {
+  outline: none;
+}
+
+/* Menu row: 28px, --fs-sm, accent left bar + --n-100 fill when active. */
+.carto-sb__menu-btn {
+  position: relative;
+  min-height: 28px;
+  padding: 0 12px 0 14px;
+  border-radius: var(--r-sm);
+  background: transparent;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.carto-sb__menu-btn:hover {
+  background: var(--n-50);
+}
+.carto-sb__menu-btn[data-active="true"] {
+  background: var(--n-100);
+  color: var(--text-strong);
+}
+/* 2px left bar in the focus-ring color marks the active row. */
+.carto-sb__menu-btn[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  border-radius: var(--r-pill);
+  background: var(--focus-ring-color);
+}
+
+/* Locked focus ring on every focusable (never removed without replacement). */
+.carto-sb__menu-btn:focus-visible,
+.carto-sb__trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  z-index: 1;
+}
+
+/* Toggle button: quiet square that lights on hover/focus. */
+.carto-sb__trigger {
+  height: 28px;
+  width: 28px;
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  background: transparent;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.carto-sb__trigger:hover {
+  background: var(--n-100);
+  color: var(--text-strong);
+}
+
+/* Collapsed icon rail: hide overflowing labels, keep glyphs centered. */
+.carto-sb__aside[data-state="collapsed"] .carto-sb__menu-btn {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+.carto-sb__aside[data-state="collapsed"] .carto-sb__eyebrow {
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Reduced motion: width snaps; information-bearing state still applies. */
+@media (prefers-reduced-motion: reduce) {
+  .carto-sb__aside,
+  .carto-sb__menu-btn,
+  .carto-sb__trigger,
+  .carto-sb__resize::after {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* ===== src/components/NavTree.tsx ===== */
+/* ============================================================================
+   NavTree (CONTRACT §7) — recursive Modules/nav rows. Scoped to .carto-nav__*.
+   Tokens are global; this file never redeclares them. Layout structure (flex,
+   sizes) lives here too so the component stays Tailwind-light and self-contained.
+   ========================================================================== */
+
+.carto-nav__list { display: flex; flex-direction: column; }
+
+/* Nested groups (depth ≥ 1) carry a faint --divider guide rail so the tree
+   structure is legible without relying on indent alone. The rail sits at the
+   parent's glyph column; rows pad past it via their per-depth paddingLeft. */
+.carto-nav__list[role="group"] {
+  margin-left: 11px;
+  border-left: 1px solid var(--divider);
+}
+
+.carto-nav__item { display: block; }
+
+/* The rail wrapper carries the per-depth indent (inline paddingLeft) and the
+   optional deepest-lib --zone-b left tint (sidebar↔canvas continuity, §5). */
+.carto-nav__rail { position: relative; }
+.carto-nav__rail[data-zone-tint="b"] {
+  box-shadow: inset 2px 0 0 0 color-mix(in oklch, var(--zone-b) 70%, transparent);
+}
+
+/* Shared row geometry: 28px tall, --fs-sm, mono-free UI text. ------------- */
+.carto-nav__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px 0 6px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+  text-align: left;
+  cursor: pointer;
+  /* Only color/bg transition — no layout/motion that carries meaning. */
+  transition: background-color 100ms ease, color 100ms ease;
+}
+
+/* Trigger is a <summary>; kill the native marker + the focus default we replace. */
+.carto-nav__trigger {
+  list-style: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.carto-nav__trigger::-webkit-details-marker { display: none; }
+.carto-nav__trigger::marker { content: ""; }
+
+/* Hover (pointer) and focus-visible (keyboard) reveal the same affordance:
+   a quiet wash + stronger text. Affordances are NEVER hover-only (§9). */
+.carto-nav__row:hover,
+.carto-nav__trigger:hover {
+  background: var(--n-50);
+  color: var(--text-strong);
+}
+
+/* Locked visible focus ring on every focusable; never removed (§9/§10). The
+   primitive may also ring itself — this is a guaranteed floor. */
+.carto-nav__trigger:focus-visible,
+.carto-nav__leaf:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  color: var(--text-strong);
+  position: relative;
+  z-index: 1;
+}
+
+/* Active leaf (current destination / cross-surface highlight): --n-100 fill +
+   a 2px --focus-ring-color left bar (§7). Driven by data-active AND aria-current
+   so it holds regardless of how the primitive treats isActive. Information-
+   bearing → applied instantly, no transition dependency. */
+.carto-nav__leaf[data-active="true"],
+.carto-nav__leaf[aria-current="page"] {
+  background: var(--n-100);
+  color: var(--text-strong);
+  box-shadow: inset 2px 0 0 0 var(--focus-ring-color);
+  font-weight: var(--fw-medium);
+}
+.carto-nav__leaf[data-active="true"]:focus-visible,
+.carto-nav__leaf[aria-current="page"]:focus-visible {
+  /* Compose the active left-bar with the focus ring so neither is lost. */
+  box-shadow: inset 2px 0 0 0 var(--focus-ring-color), var(--focus-ring);
+}
+
+/* Chevron — 12px, rotates 90° on open. aria-expanded lives on the <summary>;
+   rotation is decorative motion, killed under reduced-motion (state is already
+   conveyed by aria-expanded + the revealed children). */
+.carto-nav__chevron,
+.carto-nav__chevron-spacer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+}
+.carto-nav__chevron {
+  color: var(--text-subtle);
+  transition: transform 120ms ease;
+}
+.carto-nav__branch[open] > .carto-nav__rail > .carto-nav__trigger .carto-nav__chevron {
+  transform: rotate(90deg);
+}
+
+/* Role glyph column — fixed 16px so labels align across depths/kinds. */
+.carto-nav__glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: var(--text-subtle);
+}
+.carto-nav__row:hover .carto-nav__glyph,
+.carto-nav__trigger:hover .carto-nav__glyph,
+.carto-nav__leaf[data-active="true"] .carto-nav__glyph,
+.carto-nav__leaf[aria-current="page"] .carto-nav__glyph {
+  color: var(--text-muted);
+}
+
+/* Label — single line, ellipsis; title attr carries the full text. */
+.carto-nav__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Empty branch leaf (per-node-lessons): disabled, italic, muted, non-interactive. */
+.carto-nav__row--empty {
+  cursor: default;
+  color: var(--text-subtle);
+}
+.carto-nav__row--empty:hover { background: transparent; }
+.carto-nav__empty-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: italic;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+/* Reduced motion: kill the only decorative motion (chevron spin). The open
+   state still flips instantly — it is carried by aria-expanded + children. */
+@media (prefers-reduced-motion: reduce) {
+  .carto-nav__chevron { transition: none; }
+  .carto-nav__row { transition: none; }
+}
+
+/* ===== src/components/Sidebar.tsx ===== */
+/* ============================================================================
+   Sidebar — CONTRACT §2 / §7. Flat chrome (no shadow); the canvas is the hero.
+   Stateful affordances (hover, focus-visible rings) live here; tokens are
+   global. Unique .carto-sidebar__* prefix so blocks never collide.
+   ========================================================================== */
+
+.carto-sidebar {
+  background: var(--canvas);
+}
+
+/* One typographic eyebrow rhyme for every section heading (Editorial graft). */
+.carto-sidebar__section .carto-sidebar__nav-eyebrow,
+.carto-sidebar .carto-sidebar__section > [data-slot='sidebar-group-label'] {
+  text-transform: uppercase;
+}
+
+/* Search trigger — input-looking button. Reveal a focus ring on keyboard nav
+   and lift the border on hover; information state never depends on these. */
+.carto-sidebar__search {
+  transition: border-color 120ms ease, background-color 120ms ease;
+  outline: none;
+}
+.carto-sidebar__search:hover {
+  border-color: var(--n-200);
+}
+.carto-sidebar__search:focus-visible {
+  box-shadow: var(--focus-ring);
+  border-color: var(--focus-ring-color);
+}
+.carto-sidebar__search:hover .carto-sidebar__search-label {
+  color: var(--text-muted);
+}
+
+/* Footer icon buttons (theme toggle + rail collapse). */
+.carto-sidebar__iconbtn {
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+  outline: none;
+}
+.carto-sidebar__iconbtn:hover {
+  background: var(--n-100);
+  color: var(--text-strong);
+}
+.carto-sidebar__iconbtn:focus-visible {
+  box-shadow: var(--focus-ring);
+  border-color: var(--focus-ring-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carto-sidebar__search,
+  .carto-sidebar__iconbtn {
+    transition: none;
+  }
+}
+
+/* ===== src/components/ui/leanCommand.tsx ===== */
+/* ============================================================================
+   leanCommand — Cmd-K palette shell (CONTRACT §8/§12). Unique .carto-cmd__*
+   prefix. Tokens are global; never redeclared here.
+   ========================================================================== */
+
+/* Visually-hidden but screen-reader-available (the required Dialog.Title/Desc). */
+.carto-cmd__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Overlay — faint --canvas-sunken scrim (60%), no shadow. */
+.carto-cmd__overlay {
+  background: color-mix(in oklch, var(--canvas-sunken) 60%, transparent);
+}
+
+/* Content — floating panel: --elev-panel, --r-lg, --shadow-2, hairline ring. */
+.carto-cmd__content {
+  background: var(--elev-panel);
+  border: 1px solid var(--elev-panel-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+  outline: none;
+}
+
+/* The cmdk Command fills the panel; Input/List slots arrive via children. */
+.carto-cmd__command {
+  max-height: min(60vh, 480px);
+  color: var(--text);
+}
+
+/* ---- Motion: 120ms fade + 8px rise, gated by Radix data-state ------------- */
+@keyframes carto-cmd__overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes carto-cmd__content-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes carto-cmd__content-out {
+  from { opacity: 1; transform: translate(-50%, 0); }
+  to   { opacity: 0; transform: translate(-50%, 8px); }
+}
+
+.carto-cmd__overlay[data-state='open'] {
+  animation: carto-cmd__overlay-in 120ms ease;
+}
+.carto-cmd__content[data-state='open'] {
+  animation: carto-cmd__content-in 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+.carto-cmd__content[data-state='closed'] {
+  animation: carto-cmd__content-out 100ms ease;
+}
+
+/* Reduced motion: information-bearing state change is instant. */
+@media (prefers-reduced-motion: reduce) {
+  .carto-cmd__overlay[data-state='open'],
+  .carto-cmd__content[data-state='open'],
+  .carto-cmd__content[data-state='closed'] {
+    animation: none !important;
+  }
+  /* Keep the closed panel from holding the 8px-down end-state. */
+  .carto-cmd__content {
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Content keeps its centering transform when no animation is running. */
+.carto-cmd__content:not([data-state='open']):not([data-state='closed']) {
+  transform: translate(-50%, 0);
+}
+
+/* ===== src/components/CommandPalette.tsx ===== */
+/* ============================================================================
+   CommandPalette (CONTRACT §8) — the cmdk surface INSIDE the lean CommandDialog.
+   The dialog wrapper owns the scrim + ⌘K rise motion + focus trap; this block
+   styles only the inner command UI: input row, dense 32px item rows, the
+   active-row --n-100 bar, eyebrow group headings, glyph/label/sublabel.
+   Prefix: .carto-cmdk* (unique to this file).
+   ========================================================================== */
+
+.carto-cmdk {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: min(60vh, 30rem);
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--elev-panel);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+/* --- Input row -------------------------------------------------------------
+   One tall search row, hairline divider below, no inner box. */
+.carto-cmdk__input {
+  width: 100%;
+  height: 48px;
+  padding: 0 var(--sp-4);
+  border: 0;
+  border-bottom: 1px solid var(--divider);
+  outline: none;
+  background: transparent;
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: 1.2;
+}
+.carto-cmdk__input::placeholder {
+  color: var(--text-subtle);
+}
+/* The input is the trapped focus target; the visible affordance is the
+   active-row bar, so keep the field outline removed but never the row ring. */
+.carto-cmdk__input:focus-visible {
+  outline: none;
+}
+
+/* --- List ------------------------------------------------------------------ */
+.carto-cmdk__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--sp-1) var(--sp-1) var(--sp-2);
+  scroll-padding-block: var(--sp-2);
+}
+
+/* --- Empty state ----------------------------------------------------------- */
+.carto-cmdk__empty {
+  padding: var(--sp-5) var(--sp-4);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+/* --- Group + the one typographic eyebrow ----------------------------------- */
+.carto-cmdk__group {
+  padding-top: var(--sp-1);
+}
+.carto-cmdk__group [cmdk-group-heading] {
+  padding: var(--sp-2) var(--sp-3) var(--sp-1);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+/* cmdk hides a group with no visible items; keep heading spacing collapsed. */
+.carto-cmdk__group[hidden] {
+  display: none;
+}
+
+/* --- Item: dense 32px row -------------------------------------------------- */
+.carto-cmdk__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 32px;
+  padding: 0 var(--sp-3);
+  margin: 1px var(--sp-1);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+/* Active row (keyboard arrows / pointer hover) — cmdk sets data-selected.
+   --n-100 fill + a 2px --focus-ring-color left bar, matching sidebar rows. */
+.carto-cmdk__item[data-selected="true"],
+.carto-cmdk__item[aria-selected="true"] {
+  background: var(--n-100);
+  color: var(--text-strong);
+}
+.carto-cmdk__item[data-selected="true"]::before,
+.carto-cmdk__item[aria-selected="true"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 4px;
+  inset-inline-start: 0;
+  width: 2px;
+  border-radius: var(--r-pill);
+  background: var(--focus-ring-color);
+}
+/* Keyboard focus-visible affordance also reveals the active styling (a11y). */
+.carto-cmdk__item:focus-visible {
+  outline: none;
+  background: var(--n-100);
+  box-shadow: var(--focus-ring);
+}
+.carto-cmdk__item[data-disabled="true"] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* --- Glyph / label / sublabel ---------------------------------------------- */
+.carto-cmdk__glyph {
+  flex: 0 0 auto;
+  color: var(--text-subtle);
+}
+.carto-cmdk__item[data-selected="true"] .carto-cmdk__glyph,
+.carto-cmdk__item[aria-selected="true"] .carto-cmdk__glyph {
+  color: var(--text-muted);
+}
+.carto-cmdk__label {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-tight);
+  color: inherit;
+}
+.carto-cmdk__sub {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-inline-start: var(--sp-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: end;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+.carto-cmdk__sub--mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+}
+
+/* ===== src/components/Legend.tsx ===== */
+/* ============================================================================
+   Legend (CONTRACT §7) — the Atlas key in the right rail. Flat (no shadow: the
+   panel that hosts it owns elevation). Eyebrow headings unify it with the rest
+   of the chrome. Colour comes only from token vars + [data-kind]/[data-zone]
+   selectors — never a hard-coded hue. No motion (information, applied instantly).
+   ========================================================================== */
+.carto-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  padding: var(--sp-5) var(--sp-4);
+  font-family: var(--font-sans);
+  color: var(--text);
+}
+
+.carto-legend__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.carto-legend__title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-strong);
+}
+.carto-legend__lede {
+  margin: 0;
+  font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
+  color: var(--text-muted);
+}
+.carto-legend__view {
+  font-weight: var(--fw-medium);
+  color: var(--text);
+}
+
+.carto-legend__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* The single typographic eyebrow used everywhere (CONTRACT §1). */
+.carto-legend__eyebrow {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.carto-legend__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.carto-legend__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-height: 28px;
+  padding: var(--sp-1) 0;
+}
+
+.carto-legend__row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.carto-legend__row-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-strong);
+  line-height: var(--lh-snug);
+}
+.carto-legend__row-desc {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
+  color: var(--text-subtle);
+}
+
+/* ---- Territories: zone swatch reads --zone from the [data-zone] selector --- */
+.carto-legend__swatch {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 16px;
+  margin-top: 2px;
+  border-radius: var(--r-pill);
+  /* --zone is set by [data-zone="a"|"b"] in tokens.css on this same element. */
+  background: var(--zone, var(--n-400));
+}
+.carto-legend__count {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-regular);
+  color: var(--text-subtle);
+}
+/* Mono count gets a leading mid-dot so it reads as "Root · 6" without extra DOM. */
+.carto-legend__count::before {
+  content: "· ";
+  color: var(--text-subtle);
+}
+
+/* ---- Roles: glyph chip reads --kind-bg/--kind-fg from the [data-kind] selector */
+.carto-legend__glyph {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-sm);
+  background: var(--kind-bg, var(--canvas-sunken));
+  color: var(--kind-fg, var(--text-muted));
+}
+.carto-legend__glyph :where(svg) {
+  display: block;
+}
+
+/* ---- Routes: a short stroke swatch in the variant colour ------------------ */
+.carto-legend__route-swatch {
+  flex: 0 0 auto;
+  position: relative;
+  width: 22px;
+  height: 16px;
+  margin-top: 2px;
+}
+/* The line itself (currentColor = the route's stroke token set inline). */
+.carto-legend__route-swatch::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 0;
+  border-top: 1.5px solid currentColor;
+}
+/* Async variant: dashed pattern so it differs by SHAPE, not colour alone. */
+.carto-legend__route-swatch[data-dashed="true"]::before {
+  border-top-style: dashed;
+}
+/* Arrowhead so the swatch reads as a directed edge (matches the 6px triangle). */
+.carto-legend__route-swatch::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  border-left: 5px solid currentColor;
+}
+
+/* Dormant route (variant not present in this view): dim the WHOLE row to 50%.
+   The "not in this view" label carries the meaning in text, so the dim is a
+   secondary cue only — information is never colour/opacity-only. */
+.carto-legend__row--route[data-dormant="true"] {
+  opacity: 0.5;
+}
+
+/* ---- Flow direction note -------------------------------------------------- */
+.carto-legend__flow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--divider);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.carto-legend__flow-icon {
+  flex: 0 0 auto;
+  color: var(--text-subtle);
+}
+.carto-legend__flow-dir {
+  font-weight: var(--fw-medium);
+  color: var(--text);
+}
+
+/* ===== src/components/DetailPanel.tsx ===== */
+/* ============================================================================
+   DetailPanel (CONTRACT §7) — scoped .carto-detail__* block.
+   Token colour/shadow/radius come from CSS vars; only layout + stateful
+   affordances (focus-visible, hover, copy feedback) live here. Tokens are
+   global and never re-declared. Reduced-motion handled by the global token
+   sheet's @media block (transition-duration -> ~0).
+   ========================================================================== */
+
+.carto-detail {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+/* --- Header: 3px kind-stripe accent rule travels canvas->panel ------------- */
+.carto-detail__header {
+  position: relative;
+  flex: 0 0 auto;
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  border-bottom: 1px solid var(--divider);
+}
+
+.carto-detail__close {
+  position: absolute;
+  top: var(--sp-3);
+  right: var(--sp-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.carto-detail__close:hover {
+  background: var(--n-100);
+  color: var(--text-strong);
+}
+.carto-detail__close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.carto-detail__title {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding-right: 32px; /* clear the close button */
+}
+
+.carto-detail__glyph {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-top: 1px;
+}
+
+/* Full label — WRAPPING, no truncation (§7). */
+.carto-detail__label {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.carto-detail__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+  padding-right: 32px;
+}
+.carto-detail__pills--edge {
+  padding: var(--sp-3) var(--sp-4) 0;
+}
+
+.carto-detail__pill {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+/* --- Scrollable body ------------------------------------------------------ */
+.carto-detail__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.carto-detail__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.carto-detail__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* One typographic eyebrow everywhere (§1). */
+.carto-detail__caption {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+.carto-detail__caption--icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.carto-detail__caption--icon svg {
+  color: var(--text-subtle);
+}
+
+.carto-detail__mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* --- Path copy-on-click --------------------------------------------------- */
+.carto-detail__copy {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+  background: var(--canvas-sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.carto-detail__copy:hover {
+  background: var(--n-100);
+  border-color: var(--n-200);
+}
+.carto-detail__copy:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.carto-detail__copy-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.carto-detail__copy-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-subtle);
+  opacity: 0; /* revealed on hover AND focus-visible */
+  transition: opacity 100ms ease, color 120ms ease;
+}
+.carto-detail__copy:hover .carto-detail__copy-icon,
+.carto-detail__copy:focus-visible .carto-detail__copy-icon {
+  opacity: 1;
+}
+.carto-detail__copy[aria-label^="Copied"] .carto-detail__copy-icon {
+  opacity: 1;
+  color: var(--ok-fg);
+}
+
+/* --- Territory chip ------------------------------------------------------- */
+.carto-detail__territory {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--canvas-sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  flex-wrap: wrap;
+}
+.carto-detail__territory-tick {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+}
+.carto-detail__territory-label {
+  font-weight: var(--fw-semibold);
+  color: var(--text-strong);
+}
+.carto-detail__territory-desc {
+  color: var(--text-subtle);
+}
+
+/* --- Connections — each row selects + pans the target --------------------- */
+.carto-detail__conn {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.carto-detail__conn + .carto-detail__conn {
+  margin-top: var(--sp-2);
+}
+.carto-detail__conn-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.carto-detail__conn-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  min-height: 28px;
+  padding: 4px 8px;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.carto-detail__conn-row:hover {
+  background: var(--n-100);
+}
+.carto-detail__conn-row:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.carto-detail__conn-glyph {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+.carto-detail__conn-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+}
+
+.carto-detail__empty {
+  margin: 0;
+  padding: 4px 8px;
+  font-size: var(--fs-sm);
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+/* --- Source links --------------------------------------------------------- */
+.carto-detail__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.carto-detail__link-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: background 120ms ease, color 120ms ease;
+}
+.carto-detail__link-row:hover {
+  background: var(--n-100);
+  color: var(--text-strong);
+}
+.carto-detail__link-row:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.carto-detail__link-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+}
+
+/* --- Documentation launcher (routes to the missing-page empty state) ------ */
+.carto-detail__doc {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.carto-detail__doc-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+  background: var(--elev-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-1);
+  color: var(--text-strong);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+.carto-detail__doc-btn:hover {
+  background: var(--elev-hover);
+  border-color: var(--n-200);
+  box-shadow: var(--shadow-2);
+}
+.carto-detail__doc-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.carto-detail__doc-arrow {
+  margin-left: auto;
+  color: var(--text-subtle);
+  transition: transform 120ms ease;
+}
+.carto-detail__doc-btn:hover .carto-detail__doc-arrow {
+  transform: translateX(2px);
+}
+.carto-detail__doc-sub {
+  font-size: var(--fs-xs);
+  font-style: italic;
+}
+
+/* --- Summary -------------------------------------------------------------- */
+.carto-detail__summary {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-base);
+  color: var(--text);
+}
+
+/* --- Edge relationship flow ---------------------------------------------- */
+.carto-detail__edge-flow {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.carto-detail__chip {
+  max-width: 100%;
+  padding: 5px 10px;
+  background: var(--canvas-sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.carto-detail__edge-arrow {
+  padding-left: 4px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+/* ===== src/components/Breadcrumb.tsx ===== */
+/* ── Breadcrumb (CONTRACT §2) ─────────────────────────────────────────────
+   Header path trail. Flat chrome (no shadow), --text-muted leading links /
+   --text-strong destination, chevron separators, ellipsis overflow, and the
+   tinted you-are-here pin. Focus rings are locked on every focusable (§9); the
+   only transition is hover colour (no information-bearing motion to gate). */
+
+.carto-crumb {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-tight);
+}
+
+.carto-crumb__list {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.carto-crumb__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.carto-crumb__sep {
+  flex: none;
+  margin: 0 1px;
+  color: var(--n-400);
+}
+
+/* Leading crumb — clickable shortcut (--text-muted, lifts to --text-strong). */
+.carto-crumb__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 18ch;
+  min-width: 0;
+  margin: 0;
+  padding: 2px 5px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.carto-crumb__link:hover {
+  color: var(--text-strong);
+  background: var(--n-100);
+}
+
+.carto-crumb__link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Destination crumb — non-link, --text-strong. */
+.carto-crumb__leaf {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 24ch;
+  min-width: 0;
+  padding: 2px 5px;
+  color: var(--text-strong);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Truncate any long segment; full text stays in the element title. */
+.carto-crumb__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.carto-crumb__icon {
+  flex: none;
+  color: var(--text-subtle);
+}
+
+/* Collapsed-middle marker (overflow past 4 levels). Hidden path in its title. */
+.carto-crumb__ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 3px;
+  color: var(--text-subtle);
+  cursor: default;
+}
+
+/* You-are-here pin — middot + tinted selected-node filename (mono). */
+.carto-crumb__item--pin {
+  gap: 4px;
+}
+
+.carto-crumb__middot {
+  flex: none;
+  color: var(--n-400);
+  font-weight: var(--fw-semibold);
+}
+
+.carto-crumb__pin {
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  /* Inline `color` (trailingTint) overrides this default when a node is selected. */
+  color: var(--text-muted);
+}
+
+/* ===== src/components/AppHeader.tsx ===== */
+/* ============================================================================
+   AppHeader (CONTRACT §2) — the 48px top bar. Flat chrome: --canvas bg, 1px
+   --divider bottom, NO shadow (set inline on the element). Token-driven colour;
+   Tailwind owns nothing here so this block is fully self-contained. Unique
+   .carto-header__* prefix so blocks never collide.
+   ========================================================================== */
+.carto-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  height: 48px;
+  flex: 0 0 48px;
+  padding: 0 var(--sp-3);
+  font-family: var(--font-sans);
+  /* No shadow — the whole shell is flat; only canvas-floating objects elevate. */
+}
+
+.carto-header__left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0; /* allow the breadcrumb to ellipsize rather than push the right cluster */
+}
+
+.carto-header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: 0 0 auto;
+}
+
+/* ---- shared square icon button (sidebar toggle, fit) ---- */
+.carto-header__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.carto-header__icon-btn:hover {
+  background: var(--n-100);
+  color: var(--text-strong);
+}
+.carto-header__icon-btn:focus-visible {
+  outline: none;
+  color: var(--text-strong);
+  box-shadow: var(--focus-ring);
+}
+
+/* ---- breadcrumb ---- */
+.carto-header__crumbs {
+  min-width: 0;
+  overflow: hidden;
+}
+.carto-header__crumb-list {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+.carto-header__crumb {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.carto-header__crumb-sep {
+  display: inline-flex;
+  align-items: center;
+  color: var(--n-400);
+  flex: 0 0 auto;
+}
+
+/* leading-crumb links: --text-muted, clickable */
+.carto-header__crumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 22ch;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-tight);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.carto-header__crumb-link > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.carto-header__crumb-link:hover {
+  background: var(--n-100);
+  color: var(--text-strong);
+}
+.carto-header__crumb-link:focus-visible {
+  outline: none;
+  color: var(--text-strong);
+  box-shadow: var(--focus-ring);
+}
+
+/* the current (last) crumb: --text-strong, non-link */
+.carto-header__crumb-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 28ch;
+  padding: 3px 6px;
+  color: var(--text-strong);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+}
+.carto-header__crumb-current > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* the first crumb's section glyph picks up the muted/strong colour of its row */
+.carto-header__crumb-link > svg,
+.carto-header__crumb-current > svg {
+  flex: 0 0 auto;
+  opacity: 0.9;
+}
+
+/* ---- right cluster: stat readout ---- */
+.carto-header__stats {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.carto-header__stat {
+  color: var(--text-subtle);
+}
+.carto-header__stat-num {
+  color: var(--text);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+.carto-header__stat-sep {
+  color: var(--n-400);
+}
+.carto-header__stat-empty {
+  color: var(--text-subtle);
+  font-style: italic;
+}
+
+/* thin vertical rule between right-cluster groups */
+.carto-header__divider {
+  width: 1px;
+  height: 18px;
+  flex: 0 0 auto;
+  background: var(--divider);
+}
+
+/* ---- layout-direction indicator ---- */
+.carto-header__layoutdir {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+  white-space: nowrap;
+}
+.carto-header__layoutdir-arrow {
+  font-size: var(--fs-sm);
+  line-height: 1;
+  color: var(--text-muted);
+}
+.carto-header__layoutdir-words {
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  font-size: var(--fs-xs);
+}
+
+/* ---- ⌘K trigger ---- */
+.carto-header__cmdk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px 0 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--canvas-sunken);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.carto-header__cmdk:hover {
+  border-color: var(--n-200);
+  color: var(--text-strong);
+}
+.carto-header__cmdk:focus-visible {
+  outline: none;
+  color: var(--text-strong);
+  box-shadow: var(--focus-ring);
+}
+.carto-header__cmdk-label {
+  line-height: var(--lh-tight);
+}
+.carto-header__kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 4px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--canvas);
+  color: var(--text-subtle);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* ---- responsive collapse: drop low-priority text before the bar overflows.
+   Information is never lost (icons + title attrs remain); only redundant words
+   collapse so counts/labels never wrap or clip to NaN-looking fragments. ---- */
+@media (max-width: 920px) {
+  .carto-header__layoutdir-words,
+  .carto-header__cmdk-label {
+    display: none;
+  }
+}
+@media (max-width: 720px) {
+  .carto-header__stats,
+  .carto-header__layoutdir,
+  .carto-header__divider {
+    display: none;
+  }
+}
+
+/* ===== src/components/MarkdownPage.tsx ===== */
+/* ============================================================================
+   MarkdownPage — scoped prose + missing-page styles (.carto-md__*).
+   Tokens are global; this block only reads them. Reduced-motion: no animated
+   transitions here; the "Copied" flip is an instant information-bearing change.
+   ========================================================================== */
+
+/* --- Page scroll host + article -------------------------------------------- */
+.carto-md__article {
+  padding: var(--sp-6) var(--sp-6) var(--sp-8);
+  margin-inline: auto;
+}
+.carto-md__doc-title { margin-top: 0; }
+
+/* The prose column. CONTRACT §11 wrapper: `cartograph-prose max-w-[72ch]`. */
+.cartograph-prose {
+  margin-inline: auto;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-base);
+}
+
+/* --- Headings -------------------------------------------------------------- */
+.carto-md__h1 {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-tight);
+  color: var(--text-strong);
+}
+.carto-md__h2 {
+  margin: var(--sp-5) 0 var(--sp-2);
+  padding-bottom: var(--sp-1);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
+  color: var(--text-strong);
+  border-bottom: 1px solid var(--divider);
+}
+.carto-md__h3 {
+  margin: var(--sp-4) 0 var(--sp-2);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  color: var(--text-strong);
+}
+
+/* --- Body text ------------------------------------------------------------- */
+.carto-md__p {
+  margin: var(--sp-3) 0;
+  color: var(--text);
+}
+.carto-md__ul,
+.carto-md__ol {
+  margin: var(--sp-3) 0;
+  padding-left: var(--sp-5);
+  color: var(--text);
+}
+.carto-md__ul { list-style: disc; }
+.carto-md__ol { list-style: decimal; }
+.carto-md__li { margin: var(--sp-1) 0; }
+/* GFM task-list checkboxes ride along inline. */
+.carto-md__li input[type='checkbox'] {
+  margin-right: var(--sp-2);
+  accent-color: var(--focus-ring-color);
+}
+
+/* --- Links ----------------------------------------------------------------- */
+.carto-md__a {
+  color: var(--focus-ring-color);
+  text-decoration: none;
+  text-underline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+.carto-md__a:hover { text-decoration: underline; }
+.carto-md__a:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* --- Blockquote ------------------------------------------------------------ */
+.carto-md__quote {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  border-left: 2px solid color-mix(in oklch, var(--focus-ring-color) 45%, transparent);
+  color: var(--text-muted);
+  font-style: italic;
+}
+.carto-md__quote > :first-child { margin-top: 0; }
+.carto-md__quote > :last-child { margin-bottom: 0; }
+
+/* --- Code: inline + fenced -------------------------------------------------- */
+.carto-md__code-inline {
+  padding: 0.1em 0.4em;
+  border-radius: var(--r-sm);
+  background: var(--canvas-sunken);
+  border: 1px solid var(--hairline);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--text-strong);
+}
+.carto-md__code-block {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--text);
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.carto-md__pre {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-3);
+  overflow-x: auto;
+  border-radius: var(--r-md);
+  background: var(--canvas-sunken);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-1); /* a code block floats: hairline + soft shadow */
+}
+.carto-md__pre .carto-md__code-inline {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+
+/* --- Tables (GFM) ---------------------------------------------------------- */
+.carto-md__table-wrap {
+  margin: var(--sp-4) 0;
+  overflow-x: auto;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+}
+.carto-md__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+.carto-md__thead { background: var(--n-50); }
+.carto-md__th {
+  padding: var(--sp-2) var(--sp-3);
+  text-align: left;
+  font-weight: var(--fw-semibold);
+  color: var(--text-strong);
+  border-bottom: 1px solid var(--divider);
+}
+.carto-md__td {
+  padding: var(--sp-2) var(--sp-3);
+  vertical-align: top;
+  color: var(--text);
+  border-bottom: 1px solid var(--divider);
+}
+.carto-md__table tr:last-child .carto-md__td { border-bottom: 0; }
+
+/* --- Rule + image ---------------------------------------------------------- */
+.carto-md__hr {
+  margin: var(--sp-6) 0;
+  border: 0;
+  border-top: 1px solid var(--divider);
+}
+.carto-md__img {
+  margin: var(--sp-3) 0;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+}
+
+/* ============================================================================
+   Missing-page actions (the EmptyState shell owns the card chrome; we style
+   only the docRef well + the two action buttons per CONTRACT §11).
+   ========================================================================== */
+.carto-md__missing-host {
+  display: flex;
+  min-height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6);
+}
+
+/* The EXACT missing ref in mono inside a --canvas-sunken well. */
+.carto-md__docref-well {
+  display: block;
+  margin-top: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--canvas-sunken);
+  border: 1px solid var(--hairline);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  word-break: break-all;
+  text-align: left;
+}
+
+/* Shared action shape. */
+.carto-md__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 32px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-sm);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.carto-md__action:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Primary: --n-900 fill / --text-on-accent. */
+.carto-md__action--primary {
+  background: var(--n-900);
+  color: var(--text-on-accent);
+  border: 1px solid var(--n-900);
+}
+.carto-md__action--primary:hover { background: var(--n-800); border-color: var(--n-800); }
+
+/* Ghost: quiet exit. */
+.carto-md__action--ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--hairline);
+}
+.carto-md__action--ghost:hover {
+  background: var(--n-100);
+  color: var(--text-strong);
+  border-color: var(--n-200);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carto-md__action { transition-duration: 0.01ms; }
+}
+
+/* ===== src/components/ChangelogView.tsx ===== */
+/* ============================================================================
+   ChangelogView — CONTRACT §11. Scoped under .carto-changelog* so blocks never
+   collide. Reads global tokens only (no token redeclaration). Flat chrome — the
+   timeline content is the hero; only the entry cards earn --shadow-1 (set
+   inline in the TSX). Tones below carry MEANING via icon + eyebrow + colour
+   together (colour is never the only signal): added/removed/migrated/suppressed
+   each pair a distinct glyph with a token hue.
+   ========================================================================== */
+
+.carto-changelog {
+  height: 100%;
+  overflow-y: auto;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-base);
+}
+
+/* Empty branch — let the shared EmptyState centre itself in the pane. */
+.carto-changelog--empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6);
+}
+
+.carto-changelog__inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-5) var(--sp-8);
+}
+
+/* --- Header ---------------------------------------------------------------- */
+.carto-changelog__head {
+  margin-bottom: var(--sp-5);
+}
+.carto-changelog__title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-strong);
+}
+.carto-changelog__lede {
+  margin: var(--sp-1) 0 0;
+  color: var(--text-muted);
+}
+
+/* --- Timeline rail --------------------------------------------------------- */
+.carto-changelog__timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.carto-changelog__group {
+  position: relative;
+  padding-left: var(--sp-5);
+  padding-bottom: var(--sp-5);
+}
+/* The vertical guide line runs through the group's left gutter. */
+.carto-changelog__group::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  bottom: 0;
+  width: 1px;
+  background: var(--divider);
+}
+.carto-changelog__group:last-child {
+  padding-bottom: 0;
+}
+.carto-changelog__group:last-child::before {
+  bottom: auto;
+  height: 14px; /* don't trail the rail past the final stamp dot */
+}
+
+/* Timestamp stamp = eyebrow + dot on the rail. */
+.carto-changelog__stamp {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+.carto-changelog__node {
+  position: absolute;
+  left: calc(-1 * var(--sp-5) + 1px);
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-pill);
+  background: var(--canvas);
+  box-shadow: 0 0 0 2px var(--n-500);
+}
+.carto-changelog__stamp-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+/* --- Entries within a timestamp group ------------------------------------- */
+.carto-changelog__entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+/* The card itself carries bg/border/radius/shadow inline (tokens). */
+.carto-changelog__entry {
+  padding: var(--sp-4);
+  transition: box-shadow 120ms ease, border-color 120ms ease;
+}
+.carto-changelog__entry:hover {
+  border-color: var(--n-200) !important;
+  box-shadow: var(--shadow-2) !important;
+}
+
+.carto-changelog__entry-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+.carto-changelog__ref {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+.carto-changelog__ref--none {
+  color: var(--text-subtle);
+  font-style: italic;
+  font-weight: var(--fw-regular);
+}
+.carto-changelog__count {
+  flex: none;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  background: var(--canvas-sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  padding: 2px var(--sp-2);
+  white-space: nowrap;
+}
+
+/* --- Kind sections (only the non-empty ones render) ----------------------- */
+.carto-changelog__kinds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.carto-changelog__kind + .carto-changelog__kind {
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--divider);
+}
+.carto-changelog__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin-bottom: var(--sp-2);
+}
+.carto-changelog__kind-count {
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+  color: var(--text-muted);
+  background: var(--canvas-sunken);
+  border-radius: var(--r-sm);
+  padding: 0 5px;
+  line-height: 1.5;
+}
+
+/* --- Rows ------------------------------------------------------------------ */
+.carto-changelog__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.carto-changelog__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.carto-changelog__glyph {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-sm);
+}
+.carto-changelog__id {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.carto-changelog__arrow {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+/* --- Tones (icon + colour together; never colour-only) -------------------- */
+/* Added — service/green accent. */
+.carto-changelog__kind[data-tone="added"] .carto-changelog__glyph {
+  color: var(--service-fg);
+  background: var(--service-bg);
+}
+/* Removed — muted/neutral (de-emphasised, with a strike to read as "gone"). */
+.carto-changelog__kind[data-tone="removed"] .carto-changelog__glyph {
+  color: var(--text-muted);
+  background: var(--canvas-sunken);
+}
+.carto-changelog__kind[data-tone="removed"] .carto-changelog__id {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--n-300);
+}
+/* Migrated — info/frontend accent on the ids' shared row. */
+.carto-changelog__kind[data-tone="migrated"] .carto-changelog__arrow {
+  color: var(--info-fg);
+}
+/* Suppressed / skipped — subtle (informational, low-emphasis). */
+.carto-changelog__kind[data-tone="suppressed"] .carto-changelog__glyph {
+  color: var(--text-subtle);
+  background: var(--canvas-sunken);
+}
+.carto-changelog__kind[data-tone="suppressed"] .carto-changelog__id {
+  color: var(--text-muted);
+}
+
+/* Reduced motion: the only motion here is the card hover transition; kill it
+   so hover is instant. Information (which kinds/rows exist) is structural and
+   already instant. */
+@media (prefers-reduced-motion: reduce) {
+  .carto-changelog__entry {
+    transition: none;
+  }
+}
+
+/* ===== src/components/KeyboardHelp.tsx ===== */
+/* ============================================================================
+   KeyboardHelp (CONTRACT §9) — the "?" overlay. Styled like the ⌘K palette:
+   --elev-panel surface, --r-lg, --shadow-2; kbd chips are --canvas-sunken /
+   --r-sm / mono. Motion is data-state driven and reduced-motion safe (the
+   global @media block in tokens.css neutralises it; .--still is the explicit
+   JS gate). Unique .carto-keyhelp__* prefix so blocks never collide.
+   ========================================================================== */
+
+/* sr-only — visually hidden but in the a11y tree (Radix Title/Description). */
+.carto-keyhelp__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Faint scrim — echoes the palette's 60% canvas-sunken veil; flat (no shadow). */
+.carto-keyhelp__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: color-mix(in oklch, var(--canvas-sunken) 60%, transparent);
+  animation: carto-keyhelp-scrim 120ms ease both;
+}
+
+/* Floating panel — earns elevation (it floats above the shell). */
+.carto-keyhelp__panel {
+  position: fixed;
+  z-index: 51;
+  top: 50%;
+  left: 50%;
+  width: min(560px, calc(100vw - 2 * var(--sp-4)));
+  max-height: calc(100vh - 2 * var(--sp-6));
+  overflow: auto;
+  transform: translate(-50%, -50%);
+  padding: var(--sp-5);
+  background: var(--elev-panel);
+  border: 1px solid var(--elev-panel-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+  color: var(--text);
+  font-family: var(--font-sans);
+  animation: carto-keyhelp-rise 120ms ease both;
+}
+
+/* Reduced-motion JS gate: content is present instantly, no rise/translate. */
+.carto-keyhelp__panel--still,
+.carto-keyhelp__panel--still ~ * {
+  animation: none;
+}
+
+@keyframes carto-keyhelp-scrim {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes carto-keyhelp-rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 8px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Header: visible heading (the eyebrow rhyme is applied to the column titles)
+   + an Esc close pill on the right. */
+.carto-keyhelp__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+}
+
+.carto-keyhelp__heading {
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-strong);
+}
+
+.carto-keyhelp__close {
+  flex: none;
+  padding: var(--sp-1) var(--sp-3);
+  background: var(--canvas-sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.carto-keyhelp__close:hover {
+  background: var(--n-100);
+  color: var(--text-strong);
+}
+
+/* Locked focus ring on the only focusable control inside the panel. */
+.carto-keyhelp__close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Two equal columns; collapse to one on narrow viewports. */
+.carto-keyhelp__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-5);
+}
+
+@media (max-width: 480px) {
+  .carto-keyhelp__cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Column eyebrow — the one typographic eyebrow used everywhere. */
+.carto-keyhelp__eyebrow {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.carto-keyhelp__list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.carto-keyhelp__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: 28px;
+}
+
+.carto-keyhelp__action {
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.carto-keyhelp__keys {
+  margin: 0;
+  flex: none;
+}
+
+.carto-keyhelp__chords {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.carto-keyhelp__chord {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.carto-keyhelp__or {
+  margin: 0 2px;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}
+
+/* Keycap chip — sunken, mono, small radius (matches handles/badges). */
+.carto-keyhelp__kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  background: var(--canvas-sunken);
+  border: 1px solid var(--hairline);
+  border-bottom-width: 2px;
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 1;
+  white-space: nowrap;
+}
+

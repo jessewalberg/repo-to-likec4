@@ -1,0 +1,19 @@
+/* Cartograph viewer entry stylesheet.
+   Order: Tailwind → React Flow structural base → our tokens (own --xy-*) → components. */
+@import "tailwindcss";
+@import "@xyflow/react/dist/base.css";
+@import "./styles/tokens.css";
+@import "./styles/components.css";
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+body {
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
