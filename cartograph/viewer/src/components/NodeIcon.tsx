@@ -26,7 +26,12 @@ import {
   Waves,
   type LucideIcon,
 } from 'lucide-react'
-import * as SI from '@icons-pack/react-simple-icons'
+import {
+  SiAngular, SiBun, SiCss, SiDeno, SiDocker, SiDotnet, SiGo, SiGraphql, SiHtml5,
+  SiJavascript, SiKotlin, SiKubernetes, SiMongodb, SiMysql, SiNodedotjs, SiOpenjdk,
+  SiPhp, SiPostgresql, SiPython, SiReact, SiRedis, SiRuby, SiRust, SiSqlite,
+  SiSvelte, SiTypescript, SiVuedotjs,
+} from '@icons-pack/react-simple-icons'
 import { iconFor } from '../lib/icons'
 
 /** A glyph component accepting the shared icon prop shape (lucide + simple-icons). */
@@ -61,23 +66,24 @@ export const LUCIDE_BY_NAME: Record<string, LucideIcon> = {
 }
 
 /**
- * Derive the simple-icons export name from a slug: `Si` + the slug with its first
- * letter uppercased (the package's naming convention, e.g. `javascript` ->
- * `SiJavascript`, `nodedotjs` -> `SiNodedotjs`, `openjdk` -> `SiOpenjdk`).
- * Returns '' for an empty/whitespace slug so the caller falls back to Box.
+ * Static slug -> simple-icons component map for ONLY the brands in the registry
+ * allowlist (../lib/icons BRAND_SLUGS). Explicit imports (not a namespace import)
+ * keep the bundle tiny — otherwise every one of the ~3k brand icons ships. Any
+ * slug not here degrades to the neutral type glyph / Box, never a wrong brand.
  */
-export function siComponentName(slug: string): string {
-  const s = slug.trim().toLowerCase()
-  if (!s) return ''
-  return 'Si' + s.charAt(0).toUpperCase() + s.slice(1)
+const BRAND_BY_SLUG: Record<string, GlyphComponent> = {
+  javascript: SiJavascript, typescript: SiTypescript, python: SiPython, go: SiGo,
+  rust: SiRust, openjdk: SiOpenjdk, kotlin: SiKotlin, ruby: SiRuby, php: SiPhp,
+  dotnet: SiDotnet, react: SiReact, vuedotjs: SiVuedotjs, svelte: SiSvelte,
+  angular: SiAngular, nodedotjs: SiNodedotjs, deno: SiDeno, bun: SiBun,
+  postgresql: SiPostgresql, mysql: SiMysql, sqlite: SiSqlite, redis: SiRedis,
+  mongodb: SiMongodb, docker: SiDocker, kubernetes: SiKubernetes, graphql: SiGraphql,
+  html5: SiHtml5, css3: SiCss,
 }
 
-/** Resolve a brand slug to its simple-icons component, or null if not present. */
+/** Resolve a brand slug to its simple-icons component, or null if not allowlisted. */
 function brandGlyph(slug: string): GlyphComponent | null {
-  const name = siComponentName(slug)
-  if (!name) return null
-  const registry = SI as unknown as Record<string, GlyphComponent | undefined>
-  return registry[name] ?? null
+  return BRAND_BY_SLUG[slug.trim().toLowerCase()] ?? null
 }
 
 export interface NodeIconProps {
